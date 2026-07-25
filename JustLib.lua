@@ -1,4 +1,7 @@
-
+-- ══════════════════════════════════════════════════════════
+--  JustLib  v1.0  ·  by Just Neos
+--  loadstring(game:HttpGet("url"))()
+-- ══════════════════════════════════════════════════════════
 local JL = {}; JL.Flags = {}
 local TS=game:GetService("TweenService"); local UIS=game:GetService("UserInputService")
 local HTTP=game:GetService("HttpService"); local LP=game:GetService("Players").LocalPlayer
@@ -350,9 +353,23 @@ function JL:Window(opts)
     end)
     -- Content area
     local content=Instance.new("Frame"); content.Size=UDim2.new(1,-(SBW+10),1,0); content.Position=UDim2.new(0,SBW+10,0,0); content.BackgroundTransparency=1; content.ZIndex=11; content.ClipsDescendants=true; content.Parent=win
-    local tabFrames={}; local tabBtns={}; local activeTabId=nil
+    local tabFrames={}; local tabBtns={}; local activeTabId=nil; local _tabCount=0
     local function switchToTab(id)
-        for tid,fr in pairs(tabFrames) do fr.Visible=(tid==id) end
+        local prevId=activeTabId
+        -- Direction: new tab index > current → slide left, else slide right
+        local goRight=(prevId ~= nil and id > prevId)
+        for tid,fr in pairs(tabFrames) do
+            if tid==id then
+                fr.Position=UDim2.new(goRight and 1 or -1, 0, 0, 0)
+                fr.Visible=true
+                tw(fr,{Position=UDim2.new(0,0,0,0)},.22,Enum.EasingStyle.Quart)
+            elseif prevId and tid==prevId then
+                tw(fr,{Position=UDim2.new(goRight and -1 or 1, 0, 0, 0)},.22,Enum.EasingStyle.Quart)
+                task.delay(.23, function() fr.Visible=false; fr.Position=UDim2.new(0,0,0,0) end)
+            else
+                fr.Visible=false
+            end
+        end
         for tid,btn in pairs(tabBtns) do
             if tid==id then btn.BackgroundColor3=Color3.fromRGB(18,36,62); local ic=btn:FindFirstChildOfClass("TextLabel") or btn:FindFirstChildOfClass("ImageLabel"); if ic then if ic:IsA("TextLabel") then ic.TextColor3=ACCENTS[1] else ic.ImageColor3=ACCENTS[1] end end
             else btn.BackgroundColor3=Color3.fromRGB(24,24,34); local ic=btn:FindFirstChildOfClass("TextLabel") or btn:FindFirstChildOfClass("ImageLabel"); if ic then if ic:IsA("TextLabel") then ic.TextColor3=C.dim else ic.ImageColor3=C.dim end end end
@@ -370,7 +387,7 @@ function JL:Window(opts)
     local Win={}
     -- :Tab() → creates a new tab
     function Win:Tab(topts)
-        topts=topts or {}; local typ=topts.Type or "Grid"; local id=tostring(#tabFrames+1)
+        topts=topts or {}; local typ=topts.Type or "Grid"; _tabCount=_tabCount+1; local id=_tabCount
         -- Sidebar button
         local btn=Instance.new("TextButton"); btn.Size=UDim2.new(0,26,0,26); btn.BackgroundColor3=Color3.fromRGB(24,24,34); btn.Text=""; btn.ZIndex=13; btn.Parent=sidebar; corner(6,btn)
         local ic=mkIcon(btn,topts.Icon or "◼",16,14); ic.Position=UDim2.new(0.5,-8,0.5,-8); ic.Size=UDim2.new(0,16,0,16)
