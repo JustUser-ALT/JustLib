@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════
---  JustLib v2.0 · Fixed & Grid-Only
+--  JustLib v2.0 · Fixed & Grid-Only (Minimal Palette)
 -- ══════════════════════════════════════════════════════════
 local JL = {}; JL.Flags = {}
 local TS = game:GetService("TweenService")
@@ -14,7 +14,7 @@ local function getContainer()
     return (ok and res) or LP:WaitForChild("PlayerGui")
 end
 
--- Стилистика и цвета (в стиле Minimal)
+-- Цветовая палитра в стиле Minimal
 local C = {
     panel = Color3.fromRGB(17, 17, 23),
     pHdr = Color3.fromRGB(23, 23, 31),
@@ -28,6 +28,7 @@ local C = {
     btnHov = Color3.fromRGB(40, 40, 56),
     sidebar = Color3.fromRGB(12, 12, 17),
     fpsGrn = Color3.fromRGB(72, 214, 92),
+    badge = Color3.fromRGB(20, 20, 28),
     input = Color3.fromRGB(20, 20, 30),
 }
 
@@ -105,7 +106,7 @@ local function draggable(handle, frame)
     end)
 end
 
--- Создание корневого ScreenGui с DisplayOrder = 999999999
+-- Корневой ScreenGui с максимальным приоритетом (999999999)
 local MainGui = Instance.new("ScreenGui")
 MainGui.Name = "JustLib_UI"
 MainGui.DisplayOrder = 999999999
@@ -125,6 +126,7 @@ local function updNotifPos()
 end
 
 function JL:Notify(cfg)
+    cfg = cfg or {}
     local title = cfg.Title or "JustLib"
     local desc = cfg.Desc or ""
     local dur = cfg.Duration or 3
@@ -172,7 +174,7 @@ function JL:Notify(cfg)
     end)
 end
 
--- Исправленный ColorPicker Modal
+-- Модальный ColorPicker без визуальных багов
 local function openColorPicker(currentColor, callback)
     local bd = Instance.new("Frame")
     bd.Size = UDim2.new(1, 0, 1, 0)
@@ -218,7 +220,7 @@ local function openColorPicker(currentColor, callback)
     closeBtn.MouseButton1Click:Connect(function() bd:Destroy() end)
     draggable(hdr, card)
 
-    -- Фикс сплошного уголка (ровный превью)
+    -- Ровный превью без срезанного уголка
     local preview = Instance.new("Frame")
     preview.Size = UDim2.new(0, 24, 0, 16)
     preview.Position = UDim2.new(1, -56, 0.5, -8)
@@ -350,11 +352,12 @@ local function openColorPicker(currentColor, callback)
     end)
 end
 
--- Главная функция создания Окна / Hub
-function JL:CreateWindow(titleText)
-    local hubTitle = titleText or "JustLib"
+-- Создание Окна (Window)
+function JL:Window(wopts)
+    wopts = wopts or {}
+    local hubTitle = wopts.Title or "JustLib"
+    local toggleHotkey = wopts.Hotkey or Enum.KeyCode.RightShift
 
-    -- Основной фрейм приложения
     local app = Instance.new("Frame")
     app.Size = UDim2.new(0, 680, 0, 420)
     app.Position = UDim2.new(0.5, -340, 0.5, -210)
@@ -365,7 +368,6 @@ function JL:CreateWindow(titleText)
     corner(10, app)
     stroke(C.border, 1, app)
 
-    -- Шапка окна
     local hdr = Instance.new("Frame")
     hdr.Size = UDim2.new(1, 0, 0, 36)
     hdr.BackgroundColor3 = C.pHdr
@@ -377,7 +379,6 @@ function JL:CreateWindow(titleText)
 
     newTxt({Parent = hdr, Text = hubTitle, Font = Enum.Font.GothamBold, Size = 13, Color = C.txt, Sz = UDim2.new(0, 200, 1, 0), Pos = UDim2.new(0, 14, 0, 0), Z = 102})
 
-    -- FPS Индикатор
     local fpsL = newTxt({Parent = hdr, Text = "FPS: --", Font = Enum.Font.GothamBold, Size = 10, Color = C.fpsGrn, XAlign = Enum.TextXAlignment.Right, Sz = UDim2.new(0, 80, 1, 0), Pos = UDim2.new(1, -120, 0, 0), Z = 102})
     local lastT, frames = tick(), 0
     RunSvc.RenderStepped:Connect(function()
@@ -389,7 +390,6 @@ function JL:CreateWindow(titleText)
         end
     end)
 
-    -- Кнопка закрытия
     local closeB = Instance.new("TextButton")
     closeB.Size = UDim2.new(0, 22, 0, 22)
     closeB.Position = UDim2.new(1, -30, 0.5, -11)
@@ -402,12 +402,12 @@ function JL:CreateWindow(titleText)
     closeB.Parent = hdr
     corner(5, closeB)
 
-    -- БЕЙДЖ (Для скрыть/показать UI)
+    -- БЕЙДЖ
     local BPOS = { top = UDim2.new(0.5, -60, 0, 10), center = UDim2.new(0.5, -60, 0.5, -16) }
     local badge = Instance.new("Frame")
     badge.Size = UDim2.new(0, 120, 0, 32)
     badge.Position = BPOS.top
-    badge.BackgroundColor3 = C.pHdr
+    badge.BackgroundColor3 = C.badge
     badge.BorderSizePixel = 0
     badge.ZIndex = 1000
     badge.Visible = false
@@ -416,7 +416,7 @@ function JL:CreateWindow(titleText)
     stroke(C.border, 1, badge)
     draggable(badge, badge)
 
-    local bTxt = newTxt({Parent = badge, Text = hubTitle, Font = Enum.Font.GothamBold, Size = 11, Color = C.txt, XAlign = Enum.TextXAlignment.Center, Z = 1001})
+    newTxt({Parent = badge, Text = hubTitle, Font = Enum.Font.GothamBold, Size = 11, Color = C.txt, XAlign = Enum.TextXAlignment.Center, Z = 1001})
 
     local uiVisible = true
     local function toggleUI()
@@ -432,7 +432,13 @@ function JL:CreateWindow(titleText)
         end
     end)
 
-    -- Сайдбар слева (Список табов)
+    UIS.InputBegan:Connect(function(i, gpe)
+        if not gpe and i.KeyCode == toggleHotkey then
+            toggleUI()
+        end
+    end)
+
+    -- Сайдбар
     local sidebar = Instance.new("Frame")
     sidebar.Size = UDim2.new(0, 140, 1, -36)
     sidebar.Position = UDim2.new(0, 0, 0, 36)
@@ -449,7 +455,6 @@ function JL:CreateWindow(titleText)
     tabList.Parent = sidebar
     pad(6, 6, 8, 8, sidebar)
 
-    -- Контейнер для отображения контента табов
     local tabContainer = Instance.new("Frame")
     tabContainer.Size = UDim2.new(1, -140, 1, -36)
     tabContainer.Position = UDim2.new(0, 140, 0, 36)
@@ -460,15 +465,18 @@ function JL:CreateWindow(titleText)
     local tabs = {}
     local activeTab = nil
 
-    local HubObj = {}
+    local WinObj = {}
 
-    -- Создание Таба (Вкладки)
-    function HubObj:CreateTab(tabName)
+    -- Создание Таба (Только GRID layout!)
+    function WinObj:Tab(topts)
+        topts = topts or {}
+        local tabName = topts.Title or topts.Name or "Tab"
+
         local tabBtn = Instance.new("TextButton")
         tabBtn.Size = UDim2.new(1, 0, 0, 28)
         tabBtn.BackgroundColor3 = C.btnBg
         tabBtn.BackgroundTransparency = 1
-        tabBtn.Text = tabName or "Tab"
+        tabBtn.Text = tabName
         tabBtn.Font = Enum.Font.GothamBold
         tabBtn.TextSize = 11
         tabBtn.TextColor3 = C.dim
@@ -478,7 +486,6 @@ function JL:CreateWindow(titleText)
         corner(6, tabBtn)
         pad(10, 0, 0, 0, tabBtn)
 
-        -- 3-КОЛОНОЧНЫЙ ГРИД (Левая, Центральная, Правая)
         local gridFrame = Instance.new("Frame")
         gridFrame.Size = UDim2.new(1, 0, 1, 0)
         gridFrame.BackgroundTransparency = 1
@@ -487,6 +494,8 @@ function JL:CreateWindow(titleText)
         gridFrame.Parent = tabContainer
 
         local cols = {}
+        local colKeys = { left = 1, mid = 2, right = 3, [1] = 1, [2] = 2, [3] = 3 }
+
         for i = 1, 3 do
             local colScroll = Instance.new("ScrollingFrame")
             colScroll.Size = UDim2.new(0.33, -8, 1, -12)
@@ -513,11 +522,14 @@ function JL:CreateWindow(titleText)
 
         local TabObj = {}
 
-        -- Создание Секции в одной из 3 колонок (1 = Left, 2 = Center, 3 = Right)
-        function TabObj:CreateSection(secTitle, colIndex, colorAccent)
-            colIndex = math.clamp(colIndex or 1, 1, 3)
-            colorAccent = colorAccent or nxAc()
-            local targetCol = cols[colIndex]
+        function TabObj:Section(sopts)
+            sopts = sopts or {}
+            local secTitle = sopts.Title or sopts.Name or "Section"
+            local cKey = sopts.Column or "left"
+            local colIdx = colKeys[cKey] or 1
+            local colorAccent = sopts.Color or nxAc()
+
+            local targetCol = cols[colIdx]
 
             local panel = Instance.new("Frame")
             panel.Size = UDim2.new(1, -4, 0, 34)
@@ -584,12 +596,16 @@ function JL:CreateWindow(titleText)
                 return r
             end
 
-            function Sec:Button(text, callback)
+            function Sec:Button(bopts)
+                bopts = bopts or {}
+                local text = bopts.Name or bopts.Title or "Button"
+                local callback = bopts.Callback
+
                 local row = newRow(26)
                 local btn = Instance.new("TextButton")
                 btn.Size = UDim2.new(1, 0, 1, 0)
                 btn.BackgroundColor3 = C.btnBg
-                btn.Text = text or "Button"
+                btn.Text = text
                 btn.Font = Enum.Font.GothamBold
                 btn.TextSize = 10
                 btn.TextColor3 = C.txt
@@ -605,9 +621,15 @@ function JL:CreateWindow(titleText)
                 end)
             end
 
-            function Sec:Toggle(text, default, callback)
+            function Sec:Toggle(topts)
+                topts = topts or {}
+                local text = topts.Name or topts.Title or "Toggle"
+                local default = topts.Default or false
+                local flag = topts.Flag
+                local callback = topts.Callback
+
                 local row = newRow(24)
-                newTxt({Parent = row, Text = text or "Toggle", Size = 10, Color = C.dim, Sz = UDim2.new(1, -36, 1, 0), Z = 107})
+                newTxt({Parent = row, Text = text, Size = 10, Color = C.dim, Sz = UDim2.new(1, -36, 1, 0), Z = 107})
 
                 local tog = Instance.new("TextButton")
                 tog.Size = UDim2.new(0, 30, 0, 16)
@@ -627,19 +649,30 @@ function JL:CreateWindow(titleText)
                 kn.Parent = tog
                 corner(6, kn)
 
-                local state = default or false
+                local state = default
+                if flag then JL.Flags[flag] = state end
+
                 tog.MouseButton1Click:Connect(function()
                     state = not state
+                    if flag then JL.Flags[flag] = state end
                     tw(tog, {BackgroundColor3 = state and C.togOn or C.togOff}, .15)
                     tw(kn, {Position = state and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)}, .15)
                     if callback then pcall(callback, state) end
                 end)
             end
 
-            function Sec:Slider(text, min, max, default, callback)
+            function Sec:Slider(sopts)
+                sopts = sopts or {}
+                local text = sopts.Name or sopts.Title or "Slider"
+                local min = sopts.Min or 0
+                local max = sopts.Max or 100
+                local default = sopts.Default or min
+                local flag = sopts.Flag
+                local callback = sopts.Callback
+
                 local row = newRow(36)
-                newTxt({Parent = row, Text = text or "Slider", Size = 10, Color = C.dim, Sz = UDim2.new(1, -40, 0, 14), Z = 107})
-                local valLbl = newTxt({Parent = row, Text = tostring(default or min), Font = Enum.Font.GothamBold, Size = 10, Color = C.txt, XAlign = Enum.TextXAlignment.Right, Sz = UDim2.new(0, 40, 0, 14), Pos = UDim2.new(1, -40, 0, 0), Z = 107})
+                newTxt({Parent = row, Text = text, Size = 10, Color = C.dim, Sz = UDim2.new(1, -40, 0, 14), Z = 107})
+                local valLbl = newTxt({Parent = row, Text = tostring(default), Font = Enum.Font.GothamBold, Size = 10, Color = C.txt, XAlign = Enum.TextXAlignment.Right, Sz = UDim2.new(0, 40, 0, 14), Pos = UDim2.new(1, -40, 0, 0), Z = 107})
 
                 local track = Instance.new("Frame")
                 track.Size = UDim2.new(1, 0, 0, 6)
@@ -650,7 +683,7 @@ function JL:CreateWindow(titleText)
                 track.Parent = row
                 corner(3, track)
 
-                local pct = math.clamp(((default or min) - min) / (max - min), 0, 1)
+                local pct = math.clamp((default - min) / (max - min), 0, 1)
                 local fill = Instance.new("Frame")
                 fill.Size = UDim2.new(pct, 0, 1, 0)
                 fill.BackgroundColor3 = colorAccent
@@ -659,12 +692,15 @@ function JL:CreateWindow(titleText)
                 fill.Parent = track
                 corner(3, fill)
 
+                if flag then JL.Flags[flag] = default end
+
                 local sliding = false
                 local function update(inp)
                     local p = math.clamp((inp.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
                     fill.Size = UDim2.new(p, 0, 1, 0)
                     local v = math.round(min + (max - min) * p)
                     valLbl.Text = tostring(v)
+                    if flag then JL.Flags[flag] = v end
                     if callback then pcall(callback, v) end
                 end
 
@@ -685,13 +721,20 @@ function JL:CreateWindow(titleText)
                 end)
             end
 
-            -- Исправленный Dropdown (выравнивание по центру, не теряется текст)
-            function Sec:Dropdown(text, items, default, callback)
+            -- Исправленный Dropdown (Текст по центру, галочка ровно, значения не пропадают)
+            function Sec:Dropdown(dopts)
+                dopts = dopts or {}
+                local text = dopts.Name or dopts.Title or "Dropdown"
+                local options = dopts.Options or dopts.Items or {}
+                local default = dopts.Default or options[1] or ""
+                local flag = dopts.Flag
+                local callback = dopts.Callback
+
                 local row = newRow(26)
                 local btn = Instance.new("TextButton")
                 btn.Size = UDim2.new(1, 0, 1, 0)
                 btn.BackgroundColor3 = C.btnBg
-                btn.Text = (text or "Dropdown") .. ": " .. tostring(default or items[1] or "")
+                btn.Text = text .. ": " .. tostring(default)
                 btn.Font = Enum.Font.Gotham
                 btn.TextSize = 10
                 btn.TextColor3 = C.txt
@@ -700,25 +743,35 @@ function JL:CreateWindow(titleText)
                 corner(6, btn)
                 stroke(C.border, 1, btn)
 
-                local curr = default or items[1]
+                local curr = default
+                if flag then JL.Flags[flag] = curr end
+
                 btn.MouseButton1Click:Connect(function()
-                    local idx = table.find(items, curr) or 1
-                    idx = (idx % #items) + 1
-                    curr = items[idx]
-                    btn.Text = (text or "Dropdown") .. ": " .. tostring(curr)
+                    if #options == 0 then return end
+                    local idx = table.find(options, curr) or 1
+                    idx = (idx % #options) + 1
+                    curr = options[idx]
+                    btn.Text = text .. ": " .. tostring(curr)
+                    if flag then JL.Flags[flag] = curr end
                     if callback then pcall(callback, curr) end
                 end)
             end
 
-            function Sec:Input(text, placeholder, callback)
+            function Sec:Input(iopts)
+                iopts = iopts or {}
+                local text = iopts.Name or iopts.Title or "Input"
+                local placeholder = iopts.Placeholder or "Type..."
+                local flag = iopts.Flag
+                local callback = iopts.Callback
+
                 local row = newRow(42)
-                newTxt({Parent = row, Text = text or "Input", Size = 10, Color = C.dim, Sz = UDim2.new(1, 0, 0, 14), Z = 107})
+                newTxt({Parent = row, Text = text, Size = 10, Color = C.dim, Sz = UDim2.new(1, 0, 0, 14), Z = 107})
 
                 local box = Instance.new("TextBox")
                 box.Size = UDim2.new(1, 0, 0, 22)
                 box.Position = UDim2.new(0, 0, 0, 18)
                 box.BackgroundColor3 = C.input
-                box.PlaceholderText = placeholder or "Type..."
+                box.PlaceholderText = placeholder
                 box.Text = ""
                 box.Font = Enum.Font.Gotham
                 box.TextSize = 10
@@ -729,27 +782,37 @@ function JL:CreateWindow(titleText)
                 stroke(C.border, 1, box)
 
                 box.FocusLost:Connect(function(enter)
+                    if flag then JL.Flags[flag] = box.Text end
                     if enter and callback then pcall(callback, box.Text) end
                 end)
             end
 
-            function Sec:ColorPicker(text, defaultColor, callback)
+            function Sec:ColorPicker(copts)
+                copts = copts or {}
+                local text = copts.Name or copts.Title or "Color"
+                local defaultColor = copts.Default or Color3.new(1, 1, 1)
+                local flag = copts.Flag
+                local callback = copts.Callback
+
                 local row = newRow(24)
-                newTxt({Parent = row, Text = text or "Color", Size = 10, Color = C.dim, Sz = UDim2.new(1, -30, 1, 0), Z = 107})
+                newTxt({Parent = row, Text = text, Size = 10, Color = C.dim, Sz = UDim2.new(1, -30, 1, 0), Z = 107})
 
                 local p = Instance.new("TextButton")
                 p.Size = UDim2.new(0, 24, 0, 16)
                 p.Position = UDim2.new(1, -24, 0.5, -8)
-                p.BackgroundColor3 = defaultColor or Color3.new(1, 1, 1)
+                p.BackgroundColor3 = defaultColor
                 p.Text = ""
                 p.ZIndex = 107
                 p.Parent = row
                 corner(4, p)
                 stroke(C.border, 1, p)
 
+                if flag then JL.Flags[flag] = defaultColor end
+
                 p.MouseButton1Click:Connect(function()
                     openColorPicker(p.BackgroundColor3, function(c)
                         p.BackgroundColor3 = c
+                        if flag then JL.Flags[flag] = c end
                         if callback then pcall(callback, c) end
                     end)
                 end)
@@ -758,7 +821,6 @@ function JL:CreateWindow(titleText)
             return Sec
         end
 
-        -- Переключение табов
         local function selectTab()
             if activeTab then
                 activeTab.btn.BackgroundTransparency = 1
@@ -778,7 +840,7 @@ function JL:CreateWindow(titleText)
         return TabObj
     end
 
-    return HubObj
+    return WinObj
 end
 
 return JL
