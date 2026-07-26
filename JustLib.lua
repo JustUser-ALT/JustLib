@@ -7,17 +7,17 @@ local TS=game:GetService("TweenService"); local UIS=game:GetService("UserInputSe
 local HTTP=game:GetService("HttpService"); local LP=game:GetService("Players").LocalPlayer
 local PG=LP:WaitForChild("PlayerGui"); local RunSvc=game:GetService("RunService")
 
--- ── Palette ───────────────────────────────────────────────
+-- ── Palette (Minimal style) ───────────────────────────────
 local C={
-    panel=Color3.fromRGB(17,17,23), pHdr=Color3.fromRGB(23,23,31),
-    border=Color3.fromRGB(42,42,58), txt=Color3.fromRGB(222,222,235),
-    dim=Color3.fromRGB(108,108,132), togOn=Color3.fromRGB(72,198,112),
-    togOff=Color3.fromRGB(48,48,66), slTrack=Color3.fromRGB(36,36,50),
-    btnBg=Color3.fromRGB(26,26,38), btnHov=Color3.fromRGB(40,40,56),
-    sidebar=Color3.fromRGB(12,12,17), fpsGrn=Color3.fromRGB(72,214,92),
-    badge=Color3.fromRGB(14,14,20), badgeHi=Color3.fromRGB(18,28,50),
-    chkBg=Color3.fromRGB(36,36,50), divLine=Color3.fromRGB(42,42,58),
-    input=Color3.fromRGB(20,20,30),
+    panel=Color3.fromRGB(45,45,48),   pHdr=Color3.fromRGB(35,35,38),
+    border=Color3.fromRGB(70,70,75),  txt=Color3.fromRGB(240,240,240),
+    dim=Color3.fromRGB(160,160,165),  togOn=Color3.fromRGB(46,204,113),
+    togOff=Color3.fromRGB(35,35,38),  slTrack=Color3.fromRGB(55,55,60),
+    btnBg=Color3.fromRGB(55,55,60),   btnHov=Color3.fromRGB(75,75,80),
+    sidebar=Color3.fromRGB(30,30,33), fpsGrn=Color3.fromRGB(72,214,92),
+    badge=Color3.fromRGB(35,35,38),   badgeHi=Color3.fromRGB(50,60,90),
+    chkBg=Color3.fromRGB(35,35,38),   divLine=Color3.fromRGB(70,70,75),
+    input=Color3.fromRGB(55,55,60),
 }
 local ACCENTS={
     Color3.fromRGB(82,152,255), Color3.fromRGB(148,92,255),
@@ -186,138 +186,146 @@ end
 local function makeSection(parentFrame,title,parentSg,layoutOrder)
     local ac=nxAc()
     local panel=Instance.new("Frame"); panel.Size=UDim2.new(1,0,0,36); panel.BackgroundColor3=C.panel; panel.BorderSizePixel=0; panel.ZIndex=13; panel.LayoutOrder=layoutOrder or 1; panel.ClipsDescendants=true; panel.Parent=parentFrame
-    corner(10,panel); stroke(C.border,1,panel)
-    -- Accent strip
-    local ast=Instance.new("Frame"); ast.Size=UDim2.new(0,3,1,-20); ast.Position=UDim2.new(0,0,0,10); ast.BackgroundColor3=ac; ast.BorderSizePixel=0; ast.ZIndex=14; ast.Parent=panel; corner(2,ast)
-    -- Header
-    local hdr=Instance.new("Frame"); hdr.Size=UDim2.new(1,0,0,34); hdr.BackgroundColor3=C.pHdr; hdr.BorderSizePixel=0; hdr.ZIndex=14; hdr.Parent=panel; corner(10,hdr)
-    local hdrFix=Instance.new("Frame"); hdrFix.Size=UDim2.new(1,0,0.5,0); hdrFix.Position=UDim2.new(0,0,0.5,0); hdrFix.BackgroundColor3=C.pHdr; hdrFix.BorderSizePixel=0; hdrFix.ZIndex=14; hdrFix.Parent=hdr
-    local cb=Instance.new("TextButton"); cb.Size=UDim2.new(0,22,0,22); cb.Position=UDim2.new(1,-28,0.5,-11); cb.BackgroundColor3=Color3.fromRGB(32,32,46); cb.Text="↓"; cb.Font=Enum.Font.GothamBold; cb.TextSize=11; cb.TextColor3=C.dim; cb.ZIndex=15; cb.Parent=hdr; corner(6,cb)
-    newTxt({Parent=hdr,Text=title,Font=Enum.Font.GothamBold,Size=12,Color=C.txt,Sz=UDim2.new(1,-36,1,0),Pos=UDim2.new(0,10,0,0),Z=15})
-    -- Items container (auto-height)
-    local content=Instance.new("Frame"); content.Size=UDim2.new(1,-6,0,0); content.Position=UDim2.new(0,3,0,36); content.BackgroundTransparency=1; content.ZIndex=14; content.ClipsDescendants=true; content.Parent=panel
-    local list=Instance.new("UIListLayout"); list.FillDirection=Enum.FillDirection.Vertical; list.Padding=UDim.new(0,4); list.SortOrder=Enum.SortOrder.LayoutOrder; list.Parent=content; pad(3,3,4,4,content)
+    corner(8,panel); stroke(C.border,1,panel)
+    -- Header (Minimal: centered title, rotating arrow)
+    local hdr=Instance.new("Frame"); hdr.Size=UDim2.new(1,0,0,36); hdr.BackgroundColor3=C.pHdr; hdr.BorderSizePixel=0; hdr.ZIndex=14; hdr.Parent=panel; corner(8,hdr)
+    local hfix=Instance.new("Frame"); hfix.Size=UDim2.new(1,0,0.5,0); hfix.Position=UDim2.new(0,0,0.5,0); hfix.BackgroundColor3=C.pHdr; hfix.BorderSizePixel=0; hfix.ZIndex=14; hfix.Parent=hdr
+    local titleLbl=Instance.new("TextLabel"); titleLbl.Size=UDim2.new(1,-36,1,0); titleLbl.BackgroundTransparency=1; titleLbl.Text=title; titleLbl.Font=Enum.Font.GothamBold; titleLbl.TextSize=13; titleLbl.TextColor3=C.txt; titleLbl.TextXAlignment=Enum.TextXAlignment.Center; titleLbl.TextTruncate=Enum.TextTruncate.AtEnd; titleLbl.ZIndex=15; titleLbl.Parent=hdr
+    local arrow=Instance.new("TextLabel"); arrow.Size=UDim2.new(0,36,0,36); arrow.Position=UDim2.new(1,-36,0,0); arrow.BackgroundTransparency=1; arrow.Text="\u25BC"; arrow.Font=Enum.Font.GothamBold; arrow.TextSize=9; arrow.TextColor3=C.dim; arrow.TextXAlignment=Enum.TextXAlignment.Center; arrow.TextYAlignment=Enum.TextYAlignment.Center; arrow.ZIndex=15; arrow.Parent=hdr
+    local secBtn=Instance.new("TextButton"); secBtn.Size=UDim2.new(1,0,1,0); secBtn.BackgroundTransparency=1; secBtn.Text=""; secBtn.ZIndex=16; secBtn.Parent=hdr
+    -- Accent strip (Minimal: vertical bar left of items, only when open+content exists)
+    local strip=Instance.new("Frame"); strip.BackgroundColor3=ac; strip.BorderSizePixel=0; strip.ZIndex=16; strip.Visible=false; strip.Parent=panel; corner(3,strip)
+    -- Items (Minimal: pad 12,8,8,8; gap 5px)
+    local content=Instance.new("Frame"); content.Size=UDim2.new(1,0,0,0); content.Position=UDim2.new(0,0,0,36); content.BackgroundTransparency=1; content.ZIndex=14; content.ClipsDescendants=true; content.Parent=panel
+    local list=Instance.new("UIListLayout"); list.FillDirection=Enum.FillDirection.Vertical; list.Padding=UDim.new(0,5); list.SortOrder=Enum.SortOrder.LayoutOrder; list.Parent=content; pad(12,8,8,8,content)
     local collapsed=false; local storedH=0
-    local function resizePanel()
-        local h=list.AbsoluteContentSize.Y+14
-        content.Size=UDim2.new(1,-6,0,h); panel.Size=UDim2.new(1,0,0,36+h)
+    local function updatePanel()
+        local h=list.AbsoluteContentSize.Y+16
+        content.Size=UDim2.new(1,0,0,h); panel.Size=UDim2.new(1,0,0,36+h)
         if not collapsed then storedH=h end
+        if not collapsed and list.AbsoluteContentSize.Y>0 then
+            strip.Visible=true; strip.Size=UDim2.new(0,3,0,list.AbsoluteContentSize.Y); strip.Position=UDim2.new(0,6,0,44)
+        else strip.Visible=false end
     end
-    list:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(resizePanel)
-    -- Collapse
-    cb.MouseButton1Click:Connect(function()
-        collapsed=not collapsed; cb.Text=collapsed and "↑" or "↓"
+    list:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updatePanel)
+    secBtn.MouseButton1Click:Connect(function()
+        collapsed=not collapsed; tw(arrow,{Rotation=collapsed and 180 or 0},.2)
         if collapsed then
-            tw(panel,{Size=UDim2.new(1,0,0,38)},.18)
+            strip.Visible=false; tw(panel,{Size=UDim2.new(1,0,0,38)},.18)
             task.delay(.19,function() if collapsed then content.Visible=false end end)
         else
-            content.Visible=true
-            tw(panel,{Size=UDim2.new(1,0,0,36+storedH)},.18)
+            content.Visible=true; tw(panel,{Size=UDim2.new(1,0,0,36+storedH)},.18)
+            task.delay(.2,function() if not collapsed then updatePanel() end end)
         end
     end)
     local iOrd=0
     local Sec={}
     local function newRow(h2) iOrd=iOrd+1; local r=Instance.new("Frame"); r.Size=UDim2.new(1,0,0,h2); r.BackgroundTransparency=1; r.ZIndex=16; r.LayoutOrder=iOrd; r.Parent=content; return r end
     -- Toggle
+    -- Toggle (Minimal: full-width button bg, square 16x16 indicator)
     function Sec:Toggle(opts)
         local state=cfgGet(opts.Flag,opts.Default or false)
-        local row=newRow(28)
-        newTxt({Parent=row,Text=opts.Name or "Toggle",Sz=UDim2.new(1,-42,1,0),Z=17})
-        local track=Instance.new("Frame"); track.Size=UDim2.new(0,34,0,18); track.Position=UDim2.new(1,-36,0.5,-9); track.BackgroundColor3=state and C.togOn or C.togOff; track.BorderSizePixel=0; track.ZIndex=17; track.Parent=row; corner(9,track)
-        local knob=Instance.new("Frame"); knob.Size=UDim2.new(0,14,0,14); knob.Position=UDim2.new(0,state and 18 or 2,0.5,-7); knob.BackgroundColor3=Color3.new(1,1,1); knob.BorderSizePixel=0; knob.ZIndex=18; knob.Parent=track; corner(7,knob)
-        local tb=Instance.new("TextButton"); tb.Size=UDim2.new(1,0,1,0); tb.BackgroundTransparency=1; tb.Text=""; tb.ZIndex=19; tb.Parent=track
-        tb.MouseButton1Click:Connect(function() state=not state; tw(track,{BackgroundColor3=state and C.togOn or C.togOff},.15); tw(knob,{Position=UDim2.new(0,state and 18 or 2,0.5,-7)},.15); cfgSet(opts.Flag,state); if opts.Callback then pcall(opts.Callback,state) end end)
+        local row=newRow(32)
+        local bg=Instance.new("TextButton"); bg.Size=UDim2.new(1,0,1,0); bg.BackgroundColor3=C.btnBg; bg.Text=""; bg.ZIndex=17; bg.Parent=row; corner(6,bg); stroke(C.border,1,bg)
+        local lbl=Instance.new("TextLabel"); lbl.Size=UDim2.new(1,-40,1,0); lbl.Position=UDim2.new(0,8,0,0); lbl.BackgroundTransparency=1; lbl.Text=opts.Name or "Toggle"; lbl.Font=Enum.Font.GothamBold; lbl.TextSize=12; lbl.TextColor3=C.txt; lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.TextTruncate=Enum.TextTruncate.AtEnd; lbl.ZIndex=18; lbl.Parent=bg
+        local ind=Instance.new("Frame"); ind.Size=UDim2.new(0,16,0,16); ind.Position=UDim2.new(1,-24,0.5,-8); ind.BackgroundColor3=state and (ac or C.togOn) or C.togOff; ind.BorderSizePixel=0; ind.ZIndex=18; ind.Parent=bg; corner(4,ind); stroke(C.border,1,ind)
+        bg.MouseButton1Click:Connect(function()
+            state=not state; tw(ind,{BackgroundColor3=state and (ac or C.togOn) or C.togOff},.12)
+            cfgSet(opts.Flag,state); if opts.Callback then pcall(opts.Callback,state) end
+        end)
         if opts.Callback and cfgGet(opts.Flag,nil)~=nil then pcall(opts.Callback,state) end
-        return {Set=function(_,v) state=v; track.BackgroundColor3=v and C.togOn or C.togOff; knob.Position=UDim2.new(0,v and 18 or 2,0.5,-7); cfgSet(opts.Flag,v) end, Get=function() return state end}
+        return {Set=function(_,v) state=v; ind.BackgroundColor3=v and (ac or C.togOn) or C.togOff; cfgSet(opts.Flag,v) end, Get=function() return state end}
     end
-    -- Slider
+    -- Slider (Minimal: 8px thick track, no knob, just fill bar)
     function Sec:Slider(opts)
         local val=cfgGet(opts.Flag,opts.Default or opts.Min or 0); local vmin=opts.Min or 0; local vmax=opts.Max or 100
         local row=newRow(40)
-        local top=Instance.new("Frame"); top.Size=UDim2.new(1,0,0,16); top.BackgroundTransparency=1; top.ZIndex=17; top.Parent=row
-        newTxt({Parent=top,Text=opts.Name or "Slider",Sz=UDim2.new(0.62,0,1,0),Z=17})
-        local valLbl=newTxt({Parent=top,Text=tostring(val),Font=Enum.Font.GothamBold,Color=ac,XAlign=Enum.TextXAlignment.Right,Sz=UDim2.new(0.38,0,1,0),Pos=UDim2.new(0.62,0,0,0),Z=17})
-        local tBg=Instance.new("Frame"); tBg.Size=UDim2.new(1,0,0,6); tBg.Position=UDim2.new(0,0,0,22); tBg.BackgroundColor3=C.slTrack; tBg.BorderSizePixel=0; tBg.ZIndex=17; tBg.Parent=row; corner(3,tBg)
-        local pct=(val-vmin)/(vmax-vmin)
-        local fill=Instance.new("Frame"); fill.Size=UDim2.new(pct,0,1,0); fill.BackgroundColor3=ac; fill.BorderSizePixel=0; fill.ZIndex=18; fill.Parent=tBg; corner(3,fill)
-        local kn=Instance.new("Frame"); kn.Size=UDim2.new(0,10,0,10); kn.Position=kp(pct); kn.BackgroundColor3=Color3.new(1,1,1); kn.BorderSizePixel=0; kn.ZIndex=19; kn.Parent=tBg; corner(5,kn)
-        local hit=Instance.new("TextButton"); hit.Size=UDim2.new(1,0,0,22); hit.Position=UDim2.new(0,0,0.5,-11); hit.BackgroundTransparency=1; hit.Text=""; hit.ZIndex=20; hit.Parent=tBg
+        local top=Instance.new("Frame"); top.Size=UDim2.new(1,0,0,18); top.BackgroundTransparency=1; top.ZIndex=17; top.Parent=row
+        local lbl=Instance.new("TextLabel"); lbl.Size=UDim2.new(1,-50,1,0); lbl.Position=UDim2.new(0,4,0,0); lbl.BackgroundTransparency=1; lbl.Text=opts.Name or "Slider"; lbl.Font=Enum.Font.GothamBold; lbl.TextSize=11; lbl.TextColor3=C.txt; lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.TextTruncate=Enum.TextTruncate.AtEnd; lbl.ZIndex=17; lbl.Parent=top
+        local valLbl=instance.new and nil  -- placeholder; see below
+        valLbl=Instance.new("TextLabel"); valLbl.Size=UDim2.new(0,44,1,0); valLbl.Position=UDim2.new(1,-44,0,0); valLbl.BackgroundTransparency=1; valLbl.Text=tostring(val); valLbl.Font=Enum.Font.GothamBold; valLbl.TextSize=11; valLbl.TextColor3=C.dim; valLbl.TextXAlignment=Enum.TextXAlignment.Right; valLbl.ZIndex=17; valLbl.Parent=top
+        -- 8px track (TextButton = hit area + background)
+        local tBg=Instance.new("TextButton"); tBg.Size=UDim2.new(1,-8,0,8); tBg.Position=UDim2.new(0,4,0,24); tBg.BackgroundColor3=C.slTrack; tBg.Text=""; tBg.ZIndex=17; tBg.Parent=row; corner(4,tBg); stroke(C.border,1,tBg)
+        local pct=math.clamp((val-vmin)/(vmax-vmin),0,1)
+        local fill=Instance.new("Frame"); fill.Size=UDim2.new(pct,0,1,0); fill.BackgroundColor3=ac; fill.BorderSizePixel=0; fill.ZIndex=18; fill.Parent=tBg; corner(4,fill)
         local sliding=false
-        hit.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then sliding=true end end)
+        local function updSlider(inp)
+            local p=math.clamp((inp.Position.X-tBg.AbsolutePosition.X)/tBg.AbsoluteSize.X,0,1)
+            val=math.round(vmin+p*(vmax-vmin)); valLbl.Text=tostring(val); tw(fill,{Size=UDim2.new(p,0,1,0)},.06)
+            cfgSet(opts.Flag,val); if opts.Callback then pcall(opts.Callback,val) end
+        end
+        tBg.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then sliding=true; updSlider(i) end end)
         UIS.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then sliding=false end end)
-        UIS.InputChanged:Connect(function(i) if not sliding then return end; if i.UserInputType~=Enum.UserInputType.MouseMovement and i.UserInputType~=Enum.UserInputType.Touch then return end; local ap=tBg.AbsolutePosition; local as=tBg.AbsoluteSize; local p=math.clamp((i.Position.X-ap.X)/as.X,0,1); val=math.round(vmin+p*(vmax-vmin)); valLbl.Text=tostring(val); fill.Size=UDim2.new(p,0,1,0); kn.Position=kp(p); cfgSet(opts.Flag,val); if opts.Callback then pcall(opts.Callback,val) end end)
+        UIS.InputChanged:Connect(function(i) if not sliding then return end; if i.UserInputType~=Enum.UserInputType.MouseMovement and i.UserInputType~=Enum.UserInputType.Touch then return end; updSlider(i) end)
         if opts.Callback and cfgGet(opts.Flag,nil)~=nil then pcall(opts.Callback,val) end
-        return {Set=function(_,v) val=v; local p=(v-vmin)/(vmax-vmin); fill.Size=UDim2.new(p,0,1,0); kn.Position=kp(p); valLbl.Text=tostring(v); cfgSet(opts.Flag,v) end, Get=function() return val end}
+        return {Set=function(_,v) val=v; local p=math.clamp((v-vmin)/(vmax-vmin),0,1); fill.Size=UDim2.new(p,0,1,0); valLbl.Text=tostring(v); cfgSet(opts.Flag,v) end, Get=function() return val end}
     end
-    -- Button
+    -- Button (Minimal: full width, centered text, accent flash)
     function Sec:Button(opts)
-        local row=newRow(28)
-        local btn=Instance.new("TextButton"); btn.Size=UDim2.new(1,-2,1,-4); btn.Position=UDim2.new(0,1,0,2); btn.BackgroundColor3=C.btnBg; btn.Text=opts.Name or "Button"; btn.Font=Enum.Font.GothamBold; btn.TextSize=11; btn.TextColor3=C.txt; btn.TextTruncate=Enum.TextTruncate.AtEnd; btn.ZIndex=17; btn.Parent=row; corner(7,btn); stroke(C.border,1,btn)
+        local row=newRow(32)
+        local btn=Instance.new("TextButton"); btn.Size=UDim2.new(1,0,1,0); btn.BackgroundColor3=C.btnBg; btn.Text=opts.Name or "Button"; btn.Font=Enum.Font.GothamBold; btn.TextSize=12; btn.TextColor3=C.txt; btn.TextXAlignment=Enum.TextXAlignment.Center; btn.TextTruncate=Enum.TextTruncate.AtEnd; btn.ZIndex=17; btn.Parent=row; corner(6,btn); stroke(C.border,1,btn)
         btn.MouseEnter:Connect(function() tw(btn,{BackgroundColor3=C.btnHov},.1) end); btn.MouseLeave:Connect(function() tw(btn,{BackgroundColor3=C.btnBg},.1) end)
         btn.MouseButton1Click:Connect(function() tw(btn,{BackgroundColor3=ac},.06); task.delay(.14,function() tw(btn,{BackgroundColor3=C.btnBg},.12) end); if opts.Callback then pcall(opts.Callback) end end)
         return btn
     end
-    -- Input
+    -- Input (Minimal: full width box, no label above, placeholder inside)
     function Sec:Input(opts)
-        local h2=opts.MultiLine and 58 or 34; local row=newRow(h2)
-        newTxt({Parent=row,Text=opts.Name or "Input",Size=10,Color=C.dim,Sz=UDim2.new(1,0,0,14),Z=17})
-        local boxH=h2-18
-        local box=Instance.new("TextBox"); box.Size=UDim2.new(1,-2,0,boxH); box.Position=UDim2.new(0,1,0,16); box.BackgroundColor3=C.input; box.PlaceholderText=opts.Placeholder or ""; box.Text=cfgGet(opts.Flag,"") or ""; box.Font=Enum.Font.Gotham; box.TextSize=11; box.TextColor3=C.txt; box.ClearTextOnFocus=false; box.MultiLine=opts.MultiLine or false; box.TextWrapped=opts.MultiLine or false; box.ZIndex=17; box.Parent=row; corner(6,box); pad(6,6,opts.MultiLine and 3 or 0,opts.MultiLine and 3 or 0,box)
+        local row=newRow(32)
+        local bg=Instance.new("Frame"); bg.Size=UDim2.new(1,0,1,0); bg.BackgroundColor3=C.input; bg.BorderSizePixel=0; bg.ZIndex=17; bg.Parent=row; corner(6,bg); stroke(C.border,1,bg)
+        local box=Instance.new("TextBox"); box.Size=UDim2.new(1,-16,1,0); box.Position=UDim2.new(0,8,0,0); box.BackgroundTransparency=1; box.PlaceholderText=opts.Placeholder or (opts.Name or "Input"); box.PlaceholderColor3=C.dim; box.Text=cfgGet(opts.Flag,"") or ""; box.Font=Enum.Font.GothamBold; box.TextSize=12; box.TextColor3=C.txt; box.ClearTextOnFocus=false; box.MultiLine=opts.MultiLine or false; box.TextWrapped=opts.MultiLine or false; box.TextXAlignment=Enum.TextXAlignment.Left; box.ZIndex=18; box.Parent=bg
         box.FocusLost:Connect(function(enter) if enter or opts.OnChange then cfgSet(opts.Flag,box.Text); if opts.Callback then pcall(opts.Callback,box.Text) end end end)
         if opts.OnChange then box:GetPropertyChangedSignal("Text"):Connect(function() cfgSet(opts.Flag,box.Text); if opts.Callback then pcall(opts.Callback,box.Text) end end) end
         return {Get=function() return box.Text end, Set=function(_,v) box.Text=v end}
     end
-    -- Dropdown
+    -- Dropdown (Minimal: rotating arrow, ScrollingFrame options, centered text)
     function Sec:Dropdown(opts)
         local options=opts.Options or {}; local multi=opts.MultiSelect; local maxSel=opts.MaxSelect or 1
         local selected={}
         local saved=cfgGet(opts.Flag,opts.Default)
         if saved then if type(saved)=="table" then for _,v in ipairs(saved) do selected[v]=true end elseif saved~="" then selected[saved]=true end end
-        local HDR=28; local OPT=26; local TOTAL=#options*OPT; local expanded=false
-        local dRow=newRow(HDR)
-        -- ClipsDescendants OFF so expanded list isn't clipped by panel
-        local dw=Instance.new("Frame"); dw.Size=UDim2.new(1,0,0,HDR); dw.BackgroundColor3=C.btnBg; dw.BorderSizePixel=0; dw.ZIndex=17; dw.ClipsDescendants=false; dw.Parent=dRow; corner(7,dw); stroke(C.border,1,dw)
-        -- Inner clip frame for header only (so border/bg looks right)
-        local hBtn=Instance.new("TextButton"); hBtn.Size=UDim2.new(1,0,0,HDR); hBtn.BackgroundTransparency=1; hBtn.Text=""; hBtn.ZIndex=18; hBtn.Parent=dw
-        local hLbl=newTxt({Parent=dw,Text="▾  "..(opts.Name or "Dropdown"),Font=Enum.Font.GothamBold,Color=C.txt,Sz=UDim2.new(1,-8,0,HDR),Pos=UDim2.new(0,8,0,0),Z=19}); hLbl.TextYAlignment=Enum.TextYAlignment.Center
-        -- Options frame (bg panel so it draws on top of sibling sections)
-        local oFr=Instance.new("Frame"); oFr.Size=UDim2.new(1,0,0,TOTAL); oFr.Position=UDim2.new(0,0,0,HDR); oFr.BackgroundColor3=C.panel; oFr.BorderSizePixel=0; oFr.ZIndex=80; oFr.Visible=false; oFr.Parent=dw; corner(7,oFr); stroke(C.border,1,oFr)
-        -- Stores per-option refs for safe clearing
+        local dropOpen=false
+        local row=newRow(32)
+        local bg=Instance.new("TextButton"); bg.Size=UDim2.new(1,0,0,32); bg.BackgroundColor3=C.btnBg; bg.Text=""; bg.ZIndex=17; bg.Parent=row; corner(6,bg); stroke(C.border,1,bg)
+        local lbl=Instance.new("TextLabel"); lbl.Size=UDim2.new(1,-40,1,0); lbl.Position=UDim2.new(0,8,0,0); lbl.BackgroundTransparency=1; lbl.Text=opts.Name or "Dropdown"; lbl.Font=Enum.Font.GothamBold; lbl.TextSize=12; lbl.TextColor3=C.txt; lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.TextTruncate=Enum.TextTruncate.AtEnd; lbl.ZIndex=18; lbl.Parent=bg
+        local darr=Instance.new("TextLabel"); darr.Size=UDim2.new(0,32,1,0); darr.Position=UDim2.new(1,-32,0,0); darr.BackgroundTransparency=1; darr.Text="\u25BC"; darr.Font=Enum.Font.GothamBold; darr.TextSize=9; darr.TextColor3=C.dim; darr.TextXAlignment=Enum.TextXAlignment.Center; darr.TextYAlignment=Enum.TextYAlignment.Center; darr.ZIndex=18; darr.Parent=bg
+        -- Options container (ScrollingFrame, slides open)
+        local OPT_H=24; local TOTAL=math.min(#options,5)*OPT_H+8
+        local container=Instance.new("ScrollingFrame"); container.Size=UDim2.new(1,0,0,0); container.Position=UDim2.new(0,0,0,34); container.BackgroundColor3=C.pHdr; container.BorderSizePixel=0; container.ZIndex=80; container.Visible=false; container.ClipsDescendants=true; container.ScrollBarThickness=3; container.ScrollBarImageColor3=C.border; container.Parent=row; corner(6,container); stroke(C.border,1,container)
+        local cStack=Instance.new("UIListLayout"); cStack.FillDirection=Enum.FillDirection.Vertical; cStack.SortOrder=Enum.SortOrder.LayoutOrder; cStack.Padding=UDim.new(0,2); cStack.Parent=container; pad(4,4,4,4,container)
+        cStack:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() container.CanvasSize=UDim2.new(0,0,0,cStack.AbsoluteContentSize.Y+8) end)
         local optRefs={}
         for i,optName in ipairs(options) do
-            local oRow=Instance.new("Frame"); oRow.Size=UDim2.new(1,0,0,OPT); oRow.Position=UDim2.new(0,0,0,(i-1)*OPT); oRow.BackgroundTransparency=1; oRow.ZIndex=81; oRow.Parent=oFr
-            local chk=Instance.new("Frame"); chk.Size=UDim2.new(0,13,0,13); chk.Position=UDim2.new(0,8,0.5,-6); chk.BackgroundColor3=selected[optName] and C.togOn or C.chkBg; chk.BorderSizePixel=0; chk.ZIndex=82; chk.Parent=oRow; corner(3,chk)
-            -- FIX: center checkmark text
-            local chkM=Instance.new("TextLabel"); chkM.Size=UDim2.new(1,0,1,0); chkM.BackgroundTransparency=1; chkM.Text=selected[optName] and "✓" or ""; chkM.Font=Enum.Font.GothamBold; chkM.TextSize=9; chkM.TextColor3=Color3.new(1,1,1); chkM.TextXAlignment=Enum.TextXAlignment.Center; chkM.TextYAlignment=Enum.TextYAlignment.Center; chkM.ZIndex=83; chkM.Parent=chk
-            newTxt({Parent=oRow,Text=optName,Sz=UDim2.new(1,-28,1,0),Pos=UDim2.new(0,26,0,0),Z=82})
-            local rB=Instance.new("TextButton"); rB.Size=UDim2.new(1,0,1,0); rB.BackgroundTransparency=1; rB.Text=""; rB.ZIndex=83; rB.Parent=oRow
-            -- Store refs so we can safely reset without touching name labels
-            optRefs[optName]={chk=chk,chkM=chkM}
-            rB.MouseButton1Click:Connect(function()
+            local opt=Instance.new("TextButton"); opt.Size=UDim2.new(1,0,0,OPT_H); opt.BackgroundColor3=C.btnBg; opt.Text=tostring(optName); opt.Font=Enum.Font.GothamBold; opt.TextSize=11; opt.TextColor3=C.txt; opt.TextXAlignment=Enum.TextXAlignment.Center; opt.TextTruncate=Enum.TextTruncate.AtEnd; opt.ZIndex=81; opt.Parent=container; corner(4,opt)
+            local selMark=Instance.new("Frame"); selMark.Size=UDim2.new(0,3,0.6,0); selMark.Position=UDim2.new(0,0,0.2,0); selMark.BackgroundColor3=ac; selMark.BorderSizePixel=0; selMark.ZIndex=82; selMark.Visible=selected[optName] or false; selMark.Parent=opt; corner(2,selMark)
+            optRefs[optName]={opt=opt,mark=selMark}
+            opt.MouseEnter:Connect(function() tw(opt,{BackgroundColor3=C.btnHov},.1) end); opt.MouseLeave:Connect(function() tw(opt,{BackgroundColor3=C.btnBg},.1) end)
+            opt.MouseButton1Click:Connect(function()
                 if multi then
                     local cnt=0; for _ in pairs(selected) do cnt=cnt+1 end
-                    if selected[optName] then selected[optName]=nil; tw(chk,{BackgroundColor3=C.chkBg},.1); chkM.Text=""
-                    elseif cnt<maxSel then selected[optName]=true; tw(chk,{BackgroundColor3=ac},.1); chkM.Text="✓" else return end
+                    if selected[optName] then selected[optName]=nil; selMark.Visible=false
+                    elseif cnt<maxSel then selected[optName]=true; selMark.Visible=true else return end
                     cfgSet(opts.Flag,selected)
                     if opts.Callback then local sel={}; for k in pairs(selected) do table.insert(sel,k) end; pcall(opts.Callback,sel) end
                 else
-                    -- FIX: clear via stored refs, never touches name TextLabel
-                    for _,ref in pairs(optRefs) do tw(ref.chk,{BackgroundColor3=C.chkBg},.1); ref.chkM.Text="" end
-                    selected={}; selected[optName]=true; tw(chk,{BackgroundColor3=ac},.1); chkM.Text="✓"
+                    for _,ref in pairs(optRefs) do ref.mark.Visible=false end
+                    selected={}; selected[optName]=true; selMark.Visible=true
+                    lbl.Text=(opts.Name or "Dropdown")..": "..optName
                     cfgSet(opts.Flag,optName); if opts.Callback then pcall(opts.Callback,optName) end
                 end
             end)
         end
-        hBtn.MouseButton1Click:Connect(function()
-            expanded=not expanded; hLbl.Text=(expanded and "▴" or "▾").."  "..(opts.Name or "Dropdown")
-            oFr.Visible=expanded
-            -- Resize dRow so UIListLayout in content resizes panel correctly
-            dRow.Size=UDim2.new(1,0,0,expanded and HDR+TOTAL or HDR)
-            dw.Size=UDim2.new(1,0,0,HDR)  -- dw stays header height, oFr overflows
-            -- Lift panel ZIndex to render above siblings when open
-            panel.ZIndex=expanded and 50 or 13
-        end)
+        local function toggleDrop()
+            dropOpen=not dropOpen; tw(darr,{Rotation=dropOpen and 180 or 0},.15)
+            if dropOpen then
+                container.Visible=true; local targetH=math.min(cStack.AbsoluteContentSize.Y+8,TOTAL)
+                tw(row,{Size=UDim2.new(1,0,0,32+targetH+4)},.15); tw(container,{Size=UDim2.new(1,0,0,targetH)},.15)
+            else
+                tw(row,{Size=UDim2.new(1,0,0,32)},.15); tw(container,{Size=UDim2.new(1,0,0,0)},.15).Completed:Connect(function() if not dropOpen then container.Visible=false end end)
+            end
+        end
+        bg.MouseButton1Click:Connect(toggleDrop)
         return {Get=function() if multi then local sel={}; for k in pairs(selected) do table.insert(sel,k) end; return sel else for k in pairs(selected) do return k end end end}
+    end
     end
     -- ColorPicker
     function Sec:ColorPicker(opts)
