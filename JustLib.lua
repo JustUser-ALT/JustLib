@@ -127,7 +127,7 @@ local function openColorPicker(sg,currentColor,callback)
     closeBtn.MouseButton1Click:Connect(function() bd.Visible=false end)
     draggable(hdr,card)
     -- Preview
-    local preview=Instance.new("Frame"); preview.Size=UDim2.new(0,30,0,24); preview.Position=UDim2.new(1,-42,0.5,-12); preview.BackgroundColor3=currentColor; preview.BorderSizePixel=0; preview.ZIndex=203; preview.Parent=hdr; corner(6,preview)
+    local preview=Instance.new("Frame"); preview.Size=UDim2.new(0,28,0,20); preview.Position=UDim2.new(1,-66,0.5,-10); preview.BackgroundColor3=currentColor; preview.BorderSizePixel=0; preview.ZIndex=203; preview.Parent=hdr; corner(5,preview); stroke(C.border,1,preview)
     local function refreshPreview() preview.BackgroundColor3=Color3.fromHSV(h,s,v) end
     -- SV square (140x120)
     local svBg=Instance.new("Frame"); svBg.Size=UDim2.new(1,-20,0,120); svBg.Position=UDim2.new(0,10,0,44); svBg.BackgroundColor3=Color3.fromHSV(h,1,1); svBg.BorderSizePixel=0; svBg.ZIndex=202; svBg.ClipsDescendants=true; svBg.Parent=card; corner(4,svBg)
@@ -183,9 +183,9 @@ local function openColorPicker(sg,currentColor,callback)
 end
 
 -- ── Section builder ───────────────────────────────────────
-local function makeSection(parentFrame,title,parentSg)
+local function makeSection(parentFrame,title,parentSg,layoutOrder)
     local ac=nxAc()
-    local panel=Instance.new("Frame"); panel.Size=UDim2.new(1,0,0,36); panel.BackgroundColor3=C.panel; panel.BorderSizePixel=0; panel.ZIndex=13; panel.ClipsDescendants=true; panel.Parent=parentFrame
+    local panel=Instance.new("Frame"); panel.Size=UDim2.new(1,0,0,36); panel.BackgroundColor3=C.panel; panel.BorderSizePixel=0; panel.ZIndex=13; panel.LayoutOrder=layoutOrder or 1; panel.ClipsDescendants=true; panel.Parent=parentFrame
     corner(10,panel); stroke(C.border,1,panel)
     -- Accent strip
     local ast=Instance.new("Frame"); ast.Size=UDim2.new(0,3,1,-20); ast.Position=UDim2.new(0,0,0,10); ast.BackgroundColor3=ac; ast.BorderSizePixel=0; ast.ZIndex=14; ast.Parent=panel; corner(2,ast)
@@ -437,11 +437,8 @@ function JL:Window(opts)
             local _pOrd={left=0,mid=0,right=0}
             function Tab:Section(sopts)
                 sopts=sopts or {}; local col=sopts.Column or "left"; _pOrd[col]=_pOrd[col]+1
-                local panel=Instance.new("Frame"); panel.Size=UDim2.new(1,0,0,36); panel.BackgroundTransparency=1; panel.ZIndex=12; panel.LayoutOrder=_pOrd[col]; panel.Parent=colF[col]
-                local Sec=makeSection(panel,sopts.Title or "Section",sg)
-                -- make section panel fill its parent correctly
-                panel:GetPropertyChangedSignal("Size"):Connect(function() end)
-                return Sec
+                -- No wrapper frame: makeSection creates its own panel directly in the column
+                return makeSection(colF[col],sopts.Title or "Section",sg,_pOrd[col])
             end
         else
             -- List (single column)
@@ -453,8 +450,7 @@ function JL:Window(opts)
             local _sOrd=0
             function Tab:Section(sopts)
                 sopts=sopts or {}; _sOrd=_sOrd+1
-                local panel=Instance.new("Frame"); panel.Size=UDim2.new(1,0,0,36); panel.BackgroundTransparency=1; panel.ZIndex=12; panel.LayoutOrder=_sOrd; panel.Parent=listCon
-                return makeSection(panel,sopts.Title or "Section",sg)
+                return makeSection(listCon,sopts.Title or "Section",sg,_sOrd)
             end
         end
         return Tab
