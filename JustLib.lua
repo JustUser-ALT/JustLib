@@ -286,7 +286,6 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
         bg.MouseButton1Click:Connect(toggleDrop)
         return {Get=function() if multi then local sel={}; for k in pairs(selected) do table.insert(sel,k) end; return sel else for k in pairs(selected) do return k end end end}
     end
-    end
     function Sec:ColorPicker(opts)
         local curColor=cfgGet(opts.Flag,opts.Default or Color3.fromRGB(255,255,255))
         if type(curColor)=="table" then curColor=Color3.fromRGB(curColor[1] or 255,curColor[2] or 255,curColor[3] or 255) end
