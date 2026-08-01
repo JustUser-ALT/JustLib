@@ -1,4 +1,4 @@
-local JL = {}; JL.Flags = {}
+local JL = {}; JL.Flags = {}; JL._winOpen = false
 local TS=game:GetService("TweenService"); local UIS=game:GetService("UserInputService")
 local HTTP=game:GetService("HttpService"); local LP=game:GetService("Players").LocalPlayer
 local PG=LP:WaitForChild("PlayerGui"); local RunSvc=game:GetService("RunService")
@@ -307,6 +307,12 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
         local row=newRow(18); local line=Instance.new("Frame"); line.Size=UDim2.new(1,0,0,1); line.Position=UDim2.new(0,0,0.5,0); line.BackgroundColor3=C.divLine; line.BorderSizePixel=0; line.ZIndex=17; line.Parent=row
         if opts and opts.Label then local LW=math.min(#opts.Label*7+12,90); local bg=Instance.new("Frame"); bg.Size=UDim2.new(0,LW,0,13); bg.Position=UDim2.new(0.5,-LW/2,0.5,-6); bg.BackgroundColor3=C.panel; bg.BorderSizePixel=0; bg.ZIndex=17; bg.Parent=row; corner(3,bg); newTxt({Parent=bg,Text=opts.Label,Font=Enum.Font.GothamBold,Size=9,Color=C.dim,XAlign=Enum.TextXAlignment.Center,Z=18}) end
     end
+    function Sec:Custom(height, setupFn)
+        iOrd=iOrd+1
+        local f=Instance.new("Frame"); f.Size=UDim2.new(1,0,0,height); f.BackgroundTransparency=1; f.ZIndex=16; f.LayoutOrder=iOrd; f.ClipsDescendants=true; f.Parent=content
+        if setupFn then setupFn(f) end
+        return f
+    end
     return Sec
 end
 function JL:Window(opts)
@@ -355,8 +361,8 @@ function JL:Window(opts)
         activeTabId=id
     end
     local isOpen=false
-    local function openW() isOpen=true; win.Visible=true; local s=.82; win.Size=UDim2.new(0,WW*s,0,WH*s); win.Position=UDim2.new(0.5,-(WW*s)/2,0.5,-(WH*s)/2); tw(win,{Size=UDim2.new(0,WW,0,WH),Position=UDim2.new(0.5,-WW/2,0.5,-WH/2)},.28,Enum.EasingStyle.Back,Enum.EasingDirection.Out); tw(badge2,{BackgroundColor3=C.badgeHi},.15); if activeTabId then switchToTab(activeTabId) end end
-    local function closeW() isOpen=false; local s=.82; tw(win,{Size=UDim2.new(0,WW*s,0,WH*s),Position=UDim2.new(0.5,-(WW*s)/2,0.5,-(WH*s)/2)},.18,Enum.EasingStyle.Quart,Enum.EasingDirection.In); task.delay(.19,function() if not isOpen then win.Visible=false end end); tw(badge2,{BackgroundColor3=C.badge},.15) end
+    local function openW() isOpen=true; win.Visible=true; local s=.82; win.Size=UDim2.new(0,WW*s,0,WH*s); win.Position=UDim2.new(0.5,-(WW*s)/2,0.5,-(WH*s)/2); tw(win,{Size=UDim2.new(0,WW,0,WH),Position=UDim2.new(0.5,-WW/2,0.5,-WH/2)},.28,Enum.EasingStyle.Back,Enum.EasingDirection.Out); tw(badge2,{BackgroundColor3=C.badgeHi},.15); if activeTabId then switchToTab(activeTabId) end; JL._winOpen=true end
+    local function closeW() isOpen=false; JL._winOpen=false; local s=.82; tw(win,{Size=UDim2.new(0,WW*s,0,WH*s),Position=UDim2.new(0.5,-(WW*s)/2,0.5,-(WH*s)/2)},.18,Enum.EasingStyle.Quart,Enum.EasingDirection.In); task.delay(.19,function() if not isOpen then win.Visible=false end end); tw(badge2,{BackgroundColor3=C.badge},.15); pcall(function() local LT2=game:GetService("Lighting"); local b=LT2:FindFirstChildOfClass("BlurEffect"); if b then b.Enabled=false end end) end
     draggable(badgeTap,badge2,function() if isOpen then closeW() else openW() end end)
     draggable(sidebar,win)
     local hotkey=opts.Hotkey or Enum.KeyCode.RightShift
@@ -411,7 +417,7 @@ function JL:Window(opts)
         do local LT=game:GetService("Lighting")
             local function getBlur() local b=LT:FindFirstChildOfClass("BlurEffect"); if not b then b=Instance.new("BlurEffect"); b.Parent=LT end; return b end
             appSec:Slider({Name="Blur (0-100%)",Min=0,Max=100,Default=cfgGet("_blur",0),Flag="_blur",Callback=function(v) local sz=math.round(v*56/100); local b=getBlur(); b.Enabled=(sz>0); b.Size=sz end})
-            task.spawn(function() while task.wait(0.5) do local v2=cfgGet("_blur",0) or 0; if v2>0 then local sz=math.round(v2*56/100); local b=getBlur(); if not b.Enabled then b.Enabled=true end; if b.Size~=sz then b.Size=sz end end end end)
+            task.spawn(function() while task.wait(0.5) do local v2=cfgGet("_blur",0) or 0; if v2>0 and JL._winOpen then local sz=math.round(v2*56/100); local b=getBlur(); if not b.Enabled then b.Enabled=true end; if b.Size~=sz then b.Size=sz end elseif not JL._winOpen then local b=LT:FindFirstChildOfClass("BlurEffect"); if b and b.Enabled then b.Enabled=false end end end end)
         end
         appSec:Toggle({Name="Show FPS",Default=cfgGet("_showfps",true),Flag="_showfps",Callback=function(v) fpsL.Visible=v end})
         local badgeSec=sTab:Section({Title="Badge"})
