@@ -294,6 +294,17 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
                 end
             end)
         end
+        if not multi then
+            for k in pairs(selected) do lbl.Text=(opts.Name or "Dropdown")..": "..k end
+        end
+        if opts.Callback and cfgGet(opts.Flag,nil)~=nil then
+            if multi then
+                local sel={}; for k in pairs(selected) do table.insert(sel,k) end
+                pcall(opts.Callback,sel)
+            else
+                for k in pairs(selected) do pcall(opts.Callback,k) end
+            end
+        end
         local function toggleDrop()
             dropOpen=not dropOpen; tw(darr,{Rotation=dropOpen and 180 or 0},.15)
             if dropOpen then
