@@ -154,26 +154,6 @@ local function openColorPicker(sg,currentColor,callback)
     mkRgbSlider("B",242,function() return b2 end,function(p) b2=p end)
     bd.InputBegan:Connect(function(i) if (i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch) then local pos=Vector2.new(i.Position.X,i.Position.Y); local cp=card.AbsolutePosition; local cs=card.AbsoluteSize; if pos.X<cp.X or pos.X>cp.X+cs.X or pos.Y<cp.Y or pos.Y>cp.Y+cs.Y then bd.Visible=false end end end)
 end
-
--- Blocking Yes/No confirmation dialog. Returns true/false once the user answers.
-local function confirmDialog(promptTitle, promptDesc)
-    local CoreGui=game:GetService("CoreGui")
-    local sg3=Instance.new("ScreenGui"); sg3.Name="JLConfirm"; sg3.ResetOnSpawn=false; sg3.IgnoreGuiInset=true; sg3.DisplayOrder=1000
-    local okp=pcall(function() sg3.Parent=CoreGui end); if not okp or not sg3.Parent then sg3.Parent=PG end
-    local bd=Instance.new("Frame"); bd.Size=UDim2.new(1,0,1,0); bd.BackgroundColor3=Color3.new(0,0,0); bd.BackgroundTransparency=0.45; bd.BorderSizePixel=0; bd.ZIndex=300; bd.Parent=sg3
-    local card=Instance.new("Frame"); card.Size=UDim2.new(0,260,0,140); card.Position=UDim2.new(0.5,-130,0.5,-70); card.BackgroundColor3=C.panel; card.BorderSizePixel=0; card.ZIndex=301; card.Parent=bd; corner(10,card); stroke(C.border,1,card)
-    newTxt({Parent=card,Text=promptTitle,Font=Enum.Font.GothamBold,Size=14,Color=C.txt,XAlign=Enum.TextXAlignment.Center,Sz=UDim2.new(1,-20,0,20),Pos=UDim2.new(0,10,0,14),Z=302})
-    newTxt({Parent=card,Text=promptDesc,Size=11,Color=C.dim,Wrap=true,XAlign=Enum.TextXAlignment.Center,Sz=UDim2.new(1,-24,0,48),Pos=UDim2.new(0,12,0,40),Z=302})
-    local yesBtn=Instance.new("TextButton"); yesBtn.Size=UDim2.new(0,105,0,32); yesBtn.Position=UDim2.new(0,18,1,-46); yesBtn.BackgroundColor3=Color3.fromRGB(72,198,138); yesBtn.Text="Yes"; yesBtn.Font=Enum.Font.GothamBold; yesBtn.TextSize=13; yesBtn.TextColor3=Color3.new(1,1,1); yesBtn.ZIndex=302; yesBtn.Parent=card; corner(7,yesBtn)
-    local noBtn=Instance.new("TextButton"); noBtn.Size=UDim2.new(0,105,0,32); noBtn.Position=UDim2.new(1,-123,1,-46); noBtn.BackgroundColor3=Color3.fromRGB(215,70,70); noBtn.Text="No"; noBtn.Font=Enum.Font.GothamBold; noBtn.TextSize=13; noBtn.TextColor3=Color3.new(1,1,1); noBtn.ZIndex=302; noBtn.Parent=card; corner(7,noBtn)
-    local result=nil
-    yesBtn.MouseButton1Click:Connect(function() if result~=nil then return end; result=true end)
-    noBtn.MouseButton1Click:Connect(function() if result~=nil then return end; result=false end)
-    while result==nil do task.wait() end
-    sg3:Destroy()
-    return result
-end
-
 local function makeSection(parentFrame,title,parentSg,layoutOrder)
     local ac=nxAc()
     local panel=Instance.new("Frame"); panel.Size=UDim2.new(1,0,0,36); panel.BackgroundColor3=C.panel; panel.BorderSizePixel=0; panel.ZIndex=13; panel.LayoutOrder=layoutOrder or 1; panel.ClipsDescendants=true; panel.Parent=parentFrame
@@ -337,16 +317,10 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
 end
 function JL:Window(opts)
     opts=opts or {}
-    -- Duplicate-injection guard: if a hub is already alive, ask before tearing it down.
-    if shared._JLActive and shared._JLActive.alive then
-        local restart=confirmDialog("Hub Already Running","A JustLib hub is already open. Restart it?")
-        if not restart then return nil end
-        pcall(shared._JLActive.destroy)
-    end
+    if PG:FindFirstChild("JustLib") then PG.JustLib:Destroy() end
     if opts.Config then cfgLoad(opts.Config) end
     local sg=Instance.new("ScreenGui"); sg.Name="JustLib"; sg.ResetOnSpawn=false; sg.IgnoreGuiInset=true; sg.ZIndexBehavior=Enum.ZIndexBehavior.Sibling; sg.DisplayOrder=999
     local ok=pcall(function() sg.Parent=game:GetService("CoreGui") end); if not ok then sg.Parent=PG end
-    local _dead=false
     local BPOS={top=UDim2.new(0.5,-79,0,14),center=UDim2.new(0.5,-79,0.5,-15),bottom=UDim2.new(0.5,-79,1,-44)}
     local badge2=Instance.new("Frame"); badge2.Size=UDim2.new(0,158,0,30); badge2.Position=BPOS.top; badge2.BackgroundColor3=C.badge; badge2.BorderSizePixel=0; badge2.ZIndex=60; badge2.Parent=sg; corner(8,badge2); stroke(C.border,1,badge2)
     if opts.Icon then local ic=mkIcon(badge2,opts.Icon,18,61); ic.Size=UDim2.new(0,18,0,18); ic.Position=UDim2.new(0,8,0.5,-9) end
@@ -354,8 +328,7 @@ function JL:Window(opts)
     local badgeTitle=newTxt({Parent=badge2,Text=opts.Title or "JustLib",Font=Enum.Font.GothamBold,Size=12,Sz=UDim2.new(0,78,1,0),Pos=UDim2.new(0,offX,0,0),Z=61})
     local divF=Instance.new("Frame"); divF.Size=UDim2.new(0,1,0,16); divF.Position=UDim2.new(0,100,0.5,-8); divF.BackgroundColor3=C.border; divF.BorderSizePixel=0; divF.ZIndex=61; divF.Parent=badge2
     local fpsL=newTxt({Parent=badge2,Text="60 FPS",Font=Enum.Font.GothamBold,Size=12,Color=C.fpsGrn,XAlign=Enum.TextXAlignment.Right,Sz=UDim2.new(0,46,1,0),Pos=UDim2.new(0,104,0,0),Z=61})
-    local fpsConn
-    do local _lt=tick(); local _fr=0; fpsConn=RunSvc.Heartbeat:Connect(function() _fr=_fr+1; local n=tick(); if n-_lt>=0.5 then fpsL.Text=math.round(_fr/(n-_lt)).." FPS"; _fr=0; _lt=n end end) end
+    do local _lt=tick(); local _fr=0; RunSvc.Heartbeat:Connect(function() _fr=_fr+1; local n=tick(); if n-_lt>=0.5 then fpsL.Text=math.round(_fr/(n-_lt)).." FPS"; _fr=0; _lt=n end end) end
     local badgeTap=Instance.new("TextButton"); badgeTap.Size=UDim2.new(1,0,1,0); badgeTap.BackgroundTransparency=1; badgeTap.Text=""; badgeTap.ZIndex=62; badgeTap.Parent=badge2
     local WW,WH=530,370
     local win=Instance.new("Frame"); win.Size=UDim2.new(0,WW,0,WH); win.Position=UDim2.new(0.5,-WW/2,0.5,-WH/2); win.BackgroundTransparency=1; win.BorderSizePixel=0; win.ZIndex=10; win.Visible=false; win.ClipsDescendants=false; win.Parent=sg
@@ -393,25 +366,7 @@ function JL:Window(opts)
     draggable(badgeTap,badge2,function() if isOpen then closeW() else openW() end end)
     draggable(sidebar,win)
     local hotkey=opts.Hotkey or Enum.KeyCode.RightShift
-    local hotkeyConn=UIS.InputBegan:Connect(function(i,gp) if gp then return end; if i.KeyCode==hotkey then if isOpen then closeW() else openW() end end end)
-
-    -- Full teardown: kills background loops, disconnects everything, wipes the GUI.
-    local function destroyHub()
-        if _dead then return end
-        _dead=true
-        JL._winOpen=false
-        if shared._JLActive then shared._JLActive.alive=false end
-        pcall(function() fpsConn:Disconnect() end)
-        pcall(function() hotkeyConn:Disconnect() end)
-        pcall(function()
-            local LT2=game:GetService("Lighting")
-            local b=LT2:FindFirstChildOfClass("BlurEffect")
-            if b then b:Destroy() end
-        end)
-        if sg and sg.Parent then sg:Destroy() end
-        if _cpSg then _cpSg=nil end
-    end
-
+    UIS.InputBegan:Connect(function(i,gp) if gp then return end; if i.KeyCode==hotkey then if isOpen then closeW() else openW() end end end)
     local Win={}
     function Win:Tab(topts)
         topts=topts or {}; local typ=topts.Type or "Grid"; _tabCount=_tabCount+1; local id=_tabCount
@@ -462,34 +417,16 @@ function JL:Window(opts)
         do local LT=game:GetService("Lighting")
             local function getBlur() local b=LT:FindFirstChildOfClass("BlurEffect"); if not b then b=Instance.new("BlurEffect"); b.Parent=LT end; return b end
             appSec:Slider({Name="Blur (0-100%)",Min=0,Max=100,Default=cfgGet("_blur",0),Flag="_blur",Callback=function(v) local sz=math.round(v*56/100); local b=getBlur(); b.Enabled=(sz>0); b.Size=sz end})
-            task.spawn(function()
-                while not _dead do
-                    task.wait(0.5)
-                    if _dead then break end
-                    local v2=cfgGet("_blur",0) or 0
-                    if v2>0 and JL._winOpen then
-                        local sz=math.round(v2*56/100); local b=getBlur()
-                        if not b.Enabled then b.Enabled=true end
-                        if b.Size~=sz then b.Size=sz end
-                    elseif not JL._winOpen then
-                        local b=LT:FindFirstChildOfClass("BlurEffect")
-                        if b and b.Enabled then b.Enabled=false end
-                    end
-                end
-            end)
+            task.spawn(function() while task.wait(0.5) do local v2=cfgGet("_blur",0) or 0; if v2>0 and JL._winOpen then local sz=math.round(v2*56/100); local b=getBlur(); if not b.Enabled then b.Enabled=true end; if b.Size~=sz then b.Size=sz end elseif not JL._winOpen then local b=LT:FindFirstChildOfClass("BlurEffect"); if b and b.Enabled then b.Enabled=false end end end end)
         end
         appSec:Toggle({Name="Show FPS",Default=cfgGet("_showfps",true),Flag="_showfps",Callback=function(v) fpsL.Visible=v end})
         local badgeSec=sTab:Section({Title="Badge"})
         badgeSec:Button({Name="Position -> Top",   Callback=function() tw(badge2,{Position=BPOS.top},.3,Enum.EasingStyle.Back,Enum.EasingDirection.Out) end})
         badgeSec:Button({Name="Position -> Center",Callback=function() tw(badge2,{Position=BPOS.center},.3,Enum.EasingStyle.Back,Enum.EasingDirection.Out) end})
         badgeSec:Button({Name="Position -> Bottom",Callback=function() tw(badge2,{Position=BPOS.bottom},.3,Enum.EasingStyle.Back,Enum.EasingDirection.Out) end})
-        badgeSec:Button({Name="Close Hub",Callback=function()
-            local sure=confirmDialog("Close Hub","Are you sure you want to close the hub? This will fully unload it.")
-            if sure then destroyHub() end
-        end})
+        badgeSec:Button({Name="Close Hub",Callback=function() closeW() end})
         return sTab
     end
-    shared._JLActive={alive=true, destroy=destroyHub}
     return Win
 end
 return JL
