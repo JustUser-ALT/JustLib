@@ -280,13 +280,29 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
             optRefs[optName]={opt=opt,mark=selMark}
             opt.MouseEnter:Connect(function() tw(opt,{BackgroundColor3=C.btnHov},.1) end); opt.MouseLeave:Connect(function() tw(opt,{BackgroundColor3=C.btnBg},.1) end)
             opt.MouseButton1Click:Connect(function()
-                if multi then
-                    local cnt=0; for _ in pairs(selected) do cnt=cnt+1 end
-                    if selected[optName] then selected[optName]=nil; selMark.Visible=false
-                    elseif cnt<maxSel then selected[optName]=true; selMark.Visible=true else return end
-                    cfgSet(opts.Flag,selected)
-                    if opts.Callback then local sel={}; for k in pairs(selected) do table.insert(sel,k) end; pcall(opts.Callback,sel) end
-                else
+    if multi then
+        local cnt=0; for _ in pairs(selected) do cnt=cnt+1 end
+        if selected[optName] then 
+            selected[optName]=nil; selMark.Visible=false
+        elseif cnt<maxSel then 
+            selected[optName]=true; selMark.Visible=true 
+        else 
+            return 
+        end
+
+        local sel={}
+        for k in pairs(selected) do table.insert(sel,k) end
+
+        cfgSet(opts.Flag,sel)
+        if opts.Callback then pcall(opts.Callback,sel) end
+    else
+        for _,ref in pairs(optRefs) do ref.mark.Visible=false end
+        selected={}; selected[optName]=true; selMark.Visible=true
+        lbl.Text=(opts.Name or "Dropdown")..": "..optName
+        cfgSet(opts.Flag,optName); if opts.Callback then pcall(opts.Callback,optName) end
+    end
+end)
+
                     for _,ref in pairs(optRefs) do ref.mark.Visible=false end
                     selected={}; selected[optName]=true; selMark.Visible=true
                     lbl.Text=(opts.Name or "Dropdown")..": "..optName
