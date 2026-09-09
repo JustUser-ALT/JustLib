@@ -259,7 +259,8 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
         if opts.OnChange then box:GetPropertyChangedSignal("Text"):Connect(function() cfgSet(opts.Flag,box.Text); if opts.Callback then pcall(opts.Callback,box.Text) end end) end
         return {Get=function() return box.Text end, Set=function(_,v) box.Text=v end}
     end
-    function Sec:Dropdown(opts)
+    
+        function Sec:Dropdown(opts)
         local options=opts.Options or {}; local multi=opts.MultiSelect; local maxSel=opts.MaxSelect or 1
         local selected={}
         local saved=cfgGet(opts.Flag,opts.Default)
@@ -303,6 +304,15 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
                     if opts.Callback then pcall(opts.Callback,optName) end
                 end
             end)
+        end
+
+        bg.MouseButton1Click:Connect(function()
+            dropOpen = not dropOpen
+            container.Visible = dropOpen
+            tw(container, {Size = dropOpen and UDim2.new(1, 0, 0, TOTAL) or UDim2.new(1, 0, 0, 0)}, 0.2)
+            tw(row, {Size = dropOpen and UDim2.new(1, 0, 0, 36 + TOTAL) or UDim2.new(1, 0, 0, 32)}, 0.2)
+            darr.Text = dropOpen and "▲" or "▼"
+        end)
 
         if not multi then
             for k in pairs(selected) do lbl.Text=(opts.Name or "Dropdown")..": "..k end
@@ -315,6 +325,12 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
                 for k in pairs(selected) do pcall(opts.Callback,k) end
             end
         end
+
+        return {
+            Get = function() return selected end
+        }
+    end
+    
         local function toggleDrop()
             dropOpen=not dropOpen; tw(darr,{Rotation=dropOpen and 180 or 0},.15)
             if dropOpen then
@@ -358,7 +374,6 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
 end
 function JL:Window(opts)
     opts=opts or {}
-    -- Duplicate-injection guard: if a hub is already alive, ask before tearing it down.
     if shared._JLActive and shared._JLActive.alive then
         local restart=confirmDialog("Hub Already Running","A JustLib hub is already open. Restart it?")
         if not restart then return nil end
