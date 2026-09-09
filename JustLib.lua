@@ -260,7 +260,7 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
         return {Get=function() return box.Text end, Set=function(_,v) box.Text=v end}
     end
     
-        function Sec:Dropdown(opts)
+            function Sec:Dropdown(opts)
         local options=opts.Options or {}; local multi=opts.MultiSelect; local maxSel=opts.MaxSelect or 1
         local selected={}
         local saved=cfgGet(opts.Flag,opts.Default)
@@ -330,19 +330,7 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
             Get = function() return selected end
         }
     end
-    
-        local function toggleDrop()
-            dropOpen=not dropOpen; tw(darr,{Rotation=dropOpen and 180 or 0},.15)
-            if dropOpen then
-                container.Visible=true; local targetH=math.min(cStack.AbsoluteContentSize.Y+8,TOTAL)
-                tw(row,{Size=UDim2.new(1,0,0,32+targetH+4)},.15); tw(container,{Size=UDim2.new(1,0,0,targetH)},.15)
-            else
-                tw(row,{Size=UDim2.new(1,0,0,32)},.15); tw(container,{Size=UDim2.new(1,0,0,0)},.15).Completed:Connect(function() if not dropOpen then container.Visible=false end end)
-            end
-        end
-        bg.MouseButton1Click:Connect(toggleDrop)
-        return {Get=function() if multi then local sel={}; for k in pairs(selected) do table.insert(sel,k) end; return sel else for k in pairs(selected) do return k end end end}
-    end
+
     function Sec:ColorPicker(opts)
         local curColor=cfgGet(opts.Flag,opts.Default or Color3.fromRGB(255,255,255))
         if type(curColor)=="table" then curColor=Color3.fromRGB(curColor[1] or 255,curColor[2] or 255,curColor[3] or 255) end
@@ -356,19 +344,24 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
         if opts.Callback and cfgGet(opts.Flag,nil)~=nil then pcall(opts.Callback,curColor) end
         return {Get=function() return curColor end, Set=function(_,v) curColor=v; preview2.BackgroundColor3=v end}
     end
+
     function Sec:Label(opts)
         local row=newRow(18)
         newTxt({Parent=row,Text=opts.Text or "",Size=10,Color=opts.Color or C.dim,Sz=UDim2.new(1,0,1,0),Z=17})
     end
+
     function Sec:Divider(opts)
         local row=newRow(18); local line=Instance.new("Frame"); line.Size=UDim2.new(1,0,0,1); line.Position=UDim2.new(0,0,0.5,0); line.BackgroundColor3=C.divLine; line.BorderSizePixel=0; line.ZIndex=17; line.Parent=row
         if opts and opts.Label then local LW=math.min(#opts.Label*7+12,90); local bg=Instance.new("Frame"); bg.Size=UDim2.new(0,LW,0,13); bg.Position=UDim2.new(0.5,-LW/2,0.5,-6); bg.BackgroundColor3=C.panel; bg.BorderSizePixel=0; bg.ZIndex=17; bg.Parent=row; corner(3,bg); newTxt({Parent=bg,Text=opts.Label,Font=Enum.Font.GothamBold,Size=9,Color=C.dim,XAlign=Enum.TextXAlignment.Center,Z=18}) end
+    end
+
     function Sec:Custom(height, setupFn)
         iOrd=iOrd+1
         local f=Instance.new("Frame"); f.Size=UDim2.new(1,0,0,height); f.BackgroundTransparency=1; f.ZIndex=16; f.LayoutOrder=iOrd; f.ClipsDescendants=true; f.Parent=content
         if setupFn then setupFn(f) end
         return f
     end
+
     return Sec
 end
 function JL:Window(opts)
