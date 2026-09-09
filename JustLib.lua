@@ -363,7 +363,6 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
     function Sec:Divider(opts)
         local row=newRow(18); local line=Instance.new("Frame"); line.Size=UDim2.new(1,0,0,1); line.Position=UDim2.new(0,0,0.5,0); line.BackgroundColor3=C.divLine; line.BorderSizePixel=0; line.ZIndex=17; line.Parent=row
         if opts and opts.Label then local LW=math.min(#opts.Label*7+12,90); local bg=Instance.new("Frame"); bg.Size=UDim2.new(0,LW,0,13); bg.Position=UDim2.new(0.5,-LW/2,0.5,-6); bg.BackgroundColor3=C.panel; bg.BorderSizePixel=0; bg.ZIndex=17; bg.Parent=row; corner(3,bg); newTxt({Parent=bg,Text=opts.Label,Font=Enum.Font.GothamBold,Size=9,Color=C.dim,XAlign=Enum.TextXAlignment.Center,Z=18}) end
-    end
     function Sec:Custom(height, setupFn)
         iOrd=iOrd+1
         local f=Instance.new("Frame"); f.Size=UDim2.new(1,0,0,height); f.BackgroundTransparency=1; f.ZIndex=16; f.LayoutOrder=iOrd; f.ClipsDescendants=true; f.Parent=content
