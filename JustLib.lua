@@ -52,13 +52,13 @@ local function mkIcon(parent,icon,sz,z)
 end
 local _cfgFile=nil; local _cfgData={}
 local function cfgLoad(name)
-    _cfgFile=name..".json"
-    if readfile then local ok,r=pcall(readfile,_cfgFile); if ok and r and r~="" then local ok2,d=pcall(HTTP.JSONDecode,HTTP,r); if ok2 and type(d)=="table" then _cfgData=d end end end
+    _cfgFile=name:match("%.json$") and name or (name..".json")
+    if readfile then local ok,r=pcall(readfile,_cfgFile); if ok and r and r~="" then local ok2,d=pcall(HTTP.JSONDecode,HTTP,r); if ok2 and type(d)=="table" then _cfgData=d; for k,v in pairs(d) do JL.Flags[k]=v end end end end
 end
 local function cfgSave()
     if _cfgFile and writefile then pcall(writefile,_cfgFile,HTTP:JSONEncode(_cfgData)) end
 end
-local function cfgSet(flag,val) if flag and _cfgFile then _cfgData[flag]=val; JL.Flags[flag]=val; cfgSave() end end
+local function cfgSet(flag,val) if flag then _cfgData[flag]=val; JL.Flags[flag]=val; cfgSave() end end
 local function cfgGet(flag,default) if flag and _cfgData[flag]~=nil then JL.Flags[flag]=_cfgData[flag]; return _cfgData[flag] end; if flag then JL.Flags[flag]=default end; return default end
 do
     local CoreGui=game:GetService("CoreGui")
@@ -260,7 +260,7 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
         return {Get=function() return box.Text end, Set=function(_,v) box.Text=v end}
     end
     
-            function Sec:Dropdown(opts)
+    function Sec:Dropdown(opts)
         local options=opts.Options or {}; local multi=opts.MultiSelect; local maxSel=opts.MaxSelect or 1
         local selected={}
         local saved=cfgGet(opts.Flag,opts.Default)
@@ -275,36 +275,51 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
         local cStack=Instance.new("UIListLayout"); cStack.FillDirection=Enum.FillDirection.Vertical; cStack.SortOrder=Enum.SortOrder.LayoutOrder; cStack.Padding=UDim.new(0,2); cStack.Parent=container; pad(4,4,4,4,container)
         cStack:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() container.CanvasSize=UDim2.new(0,0,0,cStack.AbsoluteContentSize.Y+8) end)
         local optRefs={}
-        for i,optName in ipairs(options) do
-            local opt=Instance.new("TextButton"); opt.Size=UDim2.new(1,0,0,OPT_H); opt.BackgroundColor3=C.btnBg; opt.Text=tostring(optName); opt.Font=Enum.Font.GothamBold; opt.TextSize=11; opt.TextColor3=C.txt; opt.TextXAlignment=Enum.TextXAlignment.Center; opt.TextTruncate=Enum.TextTruncate.AtEnd; opt.ZIndex=81; opt.Parent=container; corner(4,opt)
-            local selMark=Instance.new("Frame"); selMark.Size=UDim2.new(0,3,0.6,0); selMark.Position=UDim2.new(0,0,0.2,0); selMark.BackgroundColor3=ac; selMark.BorderSizePixel=0; selMark.ZIndex=82; selMark.Visible=selected[optName] or false; selMark.Parent=opt; corner(2,selMark)
-            optRefs[optName]={opt=opt,mark=selMark}
-            opt.MouseEnter:Connect(function() tw(opt,{BackgroundColor3=C.btnHov},.1) end); opt.MouseLeave:Connect(function() tw(opt,{BackgroundColor3=C.btnBg},.1) end)
-            opt.MouseButton1Click:Connect(function()
-                if multi then
-                    local cnt=0; for _ in pairs(selected) do cnt=cnt+1 end
-                    if selected[optName] then 
-                        selected[optName]=nil; selMark.Visible=false
-                    elseif cnt<maxSel then 
-                        selected[optName]=true; selMark.Visible=true 
-                    else 
-                        return 
+
+        local function rebuildOptions(newOpts)
+            if newOpts then options = newOpts end
+            for _, ch in ipairs(container:GetChildren()) do
+                if ch:IsA("TextButton") then ch:Destroy() end
+            end
+            optRefs = {}
+            for i, optName in ipairs(options) do
+                local opt=Instance.new("TextButton"); opt.Size=UDim2.new(1,0,0,OPT_H); opt.BackgroundColor3=C.btnBg; opt.Text=tostring(optName); opt.Font=Enum.Font.GothamBold; opt.TextSize=11; opt.TextColor3=C.txt; opt.TextXAlignment=Enum.TextXAlignment.Center; opt.TextTruncate=Enum.TextTruncate.AtEnd; opt.ZIndex=81; opt.Parent=container; corner(4,opt)
+                local selMark=Instance.new("Frame"); selMark.Size=UDim2.new(0,3,0.6,0); selMark.Position=UDim2.new(0,0,0.2,0); selMark.BackgroundColor3=ac; selMark.BorderSizePixel=0; selMark.ZIndex=82; selMark.Visible=selected[optName] or false; selMark.Parent=opt; corner(2,selMark)
+                optRefs[optName]={opt=opt,mark=selMark}
+                opt.MouseEnter:Connect(function() tw(opt,{BackgroundColor3=C.btnHov},.1) end); opt.MouseLeave:Connect(function() tw(opt,{BackgroundColor3=C.btnBg},.1) end)
+                opt.MouseButton1Click:Connect(function()
+                    if multi then
+                        local cnt=0; for _ in pairs(selected) do cnt=cnt+1 end
+                        if selected[optName] then 
+                            selected[optName]=nil; selMark.Visible=false
+                        elseif cnt<maxSel then 
+                            selected[optName]=true; selMark.Visible=true 
+                        else 
+                            return 
+                        end
+
+                        local sel={}
+                        for k in pairs(selected) do table.insert(sel,k) end
+
+                        cfgSet(opts.Flag,sel)
+                        if opts.Callback then pcall(opts.Callback,sel) end
+                    else
+                        for _,ref in pairs(optRefs) do ref.mark.Visible=false end
+                        selected={}; selected[optName]=true; selMark.Visible=true
+                        lbl.Text=(opts.Name or "Dropdown")..": "..optName
+                        cfgSet(opts.Flag,optName)
+                        if opts.Callback then pcall(opts.Callback,optName) end
                     end
-
-                    local sel={}
-                    for k in pairs(selected) do table.insert(sel,k) end
-
-                    cfgSet(opts.Flag,sel)
-                    if opts.Callback then pcall(opts.Callback,sel) end
-                else
-                    for _,ref in pairs(optRefs) do ref.mark.Visible=false end
-                    selected={}; selected[optName]=true; selMark.Visible=true
-                    lbl.Text=(opts.Name or "Dropdown")..": "..optName
-                    cfgSet(opts.Flag,optName)
-                    if opts.Callback then pcall(opts.Callback,optName) end
-                end
-            end)
+                end)
+            end
+            TOTAL=math.min(#options,5)*OPT_H+8
+            if dropOpen then
+                container.Size = UDim2.new(1,0,0,TOTAL)
+                row.Size = UDim2.new(1,0,0,36+TOTAL)
+            end
         end
+
+        rebuildOptions(options)
 
         bg.MouseButton1Click:Connect(function()
             dropOpen = not dropOpen
@@ -327,7 +342,9 @@ local function makeSection(parentFrame,title,parentSg,layoutOrder)
         end
 
         return {
-            Get = function() return selected end
+            Get = function() return selected end,
+            Refresh = rebuildOptions,
+            SetOptions = rebuildOptions
         }
     end
 
@@ -515,6 +532,133 @@ function JL:Window(opts)
             local sure=confirmDialog("Close Hub","Are you sure you want to close the hub? This will fully unload it.")
             if sure then destroyHub() end
         end})
+
+        -- Configure Section
+        local cfgSec=sTab:Section({Title="Configure"})
+
+        local function getConfigs()
+            local cfgs={}
+            if listfiles then
+                local ok,files=pcall(listfiles,"")
+                if ok and type(files)=="table" then
+                    for _,f in ipairs(files) do
+                        local name=f:match("([^/\\]+)%.json$")
+                        if name then table.insert(cfgs,name) end
+                    end
+                end
+            end
+            return cfgs
+        end
+
+        local cfgNameInput=cfgSec:Input({Name="Config Name",Placeholder="Enter config name..."})
+        local selectedCfg=nil
+
+        local cfgDropdown
+        local function refreshCfgList()
+            if cfgDropdown and cfgDropdown.Refresh then
+                cfgDropdown:Refresh(getConfigs())
+            end
+        end
+
+        cfgSec:Button({
+            Name="Save Config",
+            Callback=function()
+                local name=cfgNameInput:Get()
+                if not name or name=="" then
+                    JL:Notify({Title="Config",Desc="Please enter a config name!",Type="Warn"})
+                    return
+                end
+                _cfgFile=name..".json"
+                cfgSave()
+                refreshCfgList()
+                JL:Notify({Title="Config",Desc="Saved: "..name,Type="Success"})
+            end
+        })
+
+        cfgDropdown=cfgSec:Dropdown({
+            Name="Select Config",
+            Options=getConfigs(),
+            Callback=function(val)
+                selectedCfg=val
+            end
+        })
+
+        cfgSec:Button({
+            Name="Load Config",
+            Callback=function()
+                if not selectedCfg or selectedCfg=="" then
+                    JL:Notify({Title="Config",Desc="No config selected!",Type="Warn"})
+                    return
+                end
+                cfgLoad(selectedCfg)
+                JL:Notify({Title="Config",Desc="Loaded: "..selectedCfg,Type="Success"})
+            end
+        })
+
+        cfgSec:Button({
+            Name="Rewrite Config",
+            Callback=function()
+                if not selectedCfg or selectedCfg=="" then
+                    JL:Notify({Title="Config",Desc="No config selected!",Type="Warn"})
+                    return
+                end
+                _cfgFile=selectedCfg..".json"
+                cfgSave()
+                JL:Notify({Title="Config",Desc="Rewrote: "..selectedCfg,Type="Success"})
+            end
+        })
+
+        cfgSec:Button({
+            Name="Delete Config",
+            Callback=function()
+                if not selectedCfg or selectedCfg=="" then
+                    JL:Notify({Title="Config",Desc="No config selected!",Type="Warn"})
+                    return
+                end
+                local fileName=selectedCfg..".json"
+                if delfile then pcall(delfile,fileName) end
+                selectedCfg=nil
+                refreshCfgList()
+                JL:Notify({Title="Config",Desc="Deleted: "..fileName,Type="Success"})
+            end
+        })
+
+        cfgSec:Button({
+            Name="Share Config",
+            Callback=function()
+                local str=HTTP:JSONEncode(_cfgData)
+                if setclipboard then
+                    setclipboard(str)
+                elseif toclipboard then
+                    toclipboard(str)
+                end
+                JL:Notify({Title="Config",Desc="Config copied to clipboard!",Type="Success"})
+            end
+        })
+
+        cfgSec:Divider({Label="Import"})
+
+        local pasteInput=cfgSec:Input({Name="Paste Config",Placeholder="Paste config string..."})
+        cfgSec:Button({
+            Name="Shared Config Paste",
+            Callback=function()
+                local str=pasteInput:Get()
+                if not str or str=="" then
+                    JL:Notify({Title="Config",Desc="Paste input is empty!",Type="Warn"})
+                    return
+                end
+                local ok,data=pcall(HTTP.JSONDecode,HTTP,str)
+                if ok and type(data)=="table" then
+                    _cfgData=data
+                    for k,v in pairs(data) do JL.Flags[k]=v end
+                    cfgSave()
+                    JL:Notify({Title="Config",Desc="Config loaded from string!",Type="Success"})
+                else
+                    JL:Notify({Title="Config",Desc="Invalid config string!",Type="Error"})
+                end
+            end
+        })
+
         return sTab
     end
     shared._JLActive={alive=true, destroy=destroyHub}
