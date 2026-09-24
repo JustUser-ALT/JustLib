@@ -1,26 +1,3 @@
---[[
-    JustLib 2.2
-    - Grid: N numbered columns (Column=1,2,3,4...), grouped into PAGES of Columns-many at a time
-      (the ‹ 1 2 3 › pager at the bottom switches pages, not individual columns); multiple
-      :Section() calls with the same Column stack vertically underneath each other
-    - Every row auto-grows in height, so long text is wrapped instead of cut off
-    - UI Scale is double-scale-safe (sidebar / grid columns / settings pages / dropdowns
-      no longer overflow or become unreachable at scale != 100%)
-    - MultiSection (one card, switchable pages, e.g. "Camera | Effects"), Text, Screen
-      (image / decal / asset id / player headshot), Dropdown Search = true, NoSave option
-      on any widget, and a named-Presets system in Settings (Save As New / Load / Rewrite /
-      Delete / Auto Load) separate from the auto-saved interface file
-    - New this version: full Notify rework (Settings > Notifications: per-type show/hide,
-      default duration, screen corner, Stack -> x2/x3... counter, still has its duration bar);
-      Tooltip = "..." on essentially every widget + Section/MultiSection headers, with a
-      Settings > Interface > Tooltip Position picker (Top/Bottom/Left/Right); Icon = "..." on
-      Section/MultiSection headers, Toggle, Button, Slider, Input, Dropdown (+ per-option via
-      OptionIcons/OptionTooltips), ColorPicker, Keybind, Text and Label; JL:LoadIconPack(url) /
-      JL:SetIcons(tbl) to resolve icon *names* (e.g. from a Footagesus/Icons-style pack) to
-      rbxassetid automatically everywhere Icon is used -- Roblox can only render rbxassetid
-      images, not raw github/lucide/figma URLs, so this name->id lookup is the real mechanism
-      other icon-enabled UI libraries use under the hood too
-]]
 local JL = {}; JL.Flags = {}; JL._winOpen = false; JL._listening = false; JL.Version = "2.2"
 JL._registry = {}; JL._noSave = {}   -- Flag -> control / Flag -> true (excluded from Presets)
 
