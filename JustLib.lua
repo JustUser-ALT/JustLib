@@ -1,5 +1,4 @@
---[[ JustLib 2.2 — Grid sections (numbered columns + paging), MultiSection, Text/Screen widgets,
-     Presets, full Notify (filters/duration/corner/stack), Tooltip + Icon on all widgets, Confirm. ]]
+
 local JL = {}; JL.Flags = {}; JL._winOpen = false; JL._listening = false; JL.Version = "2.2"
 JL._registry = {}; JL._noSave = {}
 
