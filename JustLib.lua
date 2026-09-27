@@ -1,7 +1,4 @@
---[[ JustLib 2.4 — Grid sections (numbered columns + paging), MultiSection, Text/Screen widgets,
-     Presets (+import/export), full Notify (filters/duration/corner/stack), Tooltip + Icon on all
-     widgets, Confirm, Themes (8 live-repaint palettes, photo/swatch-safe), Win:HomeTab (real
-     player/game stats + Sub-Places), and Locked & Hidden on every widget/Section/MultiSection/Tab. ]]
+
 local JL = {}; JL.Flags = {}; JL._winOpen = false; JL._listening = false; JL.Version = "2.4"
 JL._registry = {}; JL._noSave = {}
 
