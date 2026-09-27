@@ -1,9 +1,4 @@
---[[ JustLib 2.5 — Grid sections (numbered columns + paging), MultiSection, Text/Screen widgets,
-     Presets (+import/export), full Notify (filters/duration/corner/stack), Tooltip + Icon on all
-     widgets, Confirm, Themes (8 live-repaint palettes, photo/swatch-safe), Win:HomeTab (real
-     player/game stats + animated Sub-Places w/ copy-script), Locked & Hidden (icon-pack lock +
-     Toggle convenience methods) on every widget/Section/MultiSection/Tab, and JL:KeySystem
-     (static Keys list and/or custom KeyValidator, SaveKey tied to the account, Get-a-key link). ]]
+
 local JL = {}; JL.Flags = {}; JL._winOpen = false; JL._listening = false; JL.Version = "2.5"
 JL._registry = {}; JL._noSave = {}
 
