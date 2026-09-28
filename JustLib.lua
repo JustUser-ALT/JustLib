@@ -1,8 +1,4 @@
---[[ JustLib 2.6 — Grid sections (numbered columns + paging), MultiSection, Text/Screen widgets,
-     Presets (+import/export), full Notify, Tooltip + Icon on all widgets, Confirm, Themes (8 live-repaint
-     palettes), Win:HomeTab (real stats, Sub-Places), Locked & Hidden (+Toggle* helpers), JL:KeySystem,
-     and Subscriptions: tiers, account-bound signed keys with optional expiry, store window, and
-     Requires/HiddenUntil gating on any widget/Section/MultiSection/Tab. Popups use CanvasGroup. ]]
+
 local JL = {}; JL.Flags = {}; JL._winOpen = false; JL._listening = false; JL.Version = "2.6"
 JL._registry = {}; JL._noSave = {}
 
