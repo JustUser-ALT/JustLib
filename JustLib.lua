@@ -1,8 +1,4 @@
---[[ JustLib 2.7 — Grid sections (numbered columns + paging), MultiSection, Text/Screen widgets,
-     Presets (+import/export), full Notify, Tooltip + Icon on all widgets, Confirm, Themes (8
-     live-repaint palettes), Win:HomeTab (real stats, Sub-Places), Locked & Hidden, JL:KeySystem,
-     Subscriptions (tiers, signed keys, Requires/HiddenUntil gating), optional sidebar text labels,
-     and TextSlider/NumberTextSlider + ValueDropdown (pick an item, dial in its level on a slider). ]]
+
 local JL = {}; JL.Flags = {}; JL._winOpen = false; JL._listening = false; JL.Version = "2.7"
 JL._registry = {}; JL._noSave = {}
 
