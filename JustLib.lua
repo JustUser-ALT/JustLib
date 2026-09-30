@@ -1,10 +1,3 @@
---[[ JustLib 2.8 — Grid sections (paging), MultiSection, Text/Screen, Presets, Notify, Tooltip +
-     Icon everywhere, Confirm, Themes (8 live-repaint palettes), Win:HomeTab, Locked & Hidden,
-     JL:KeySystem, Subscriptions (tiers/signed keys/Requires-HiddenUntil), sidebar text labels,
-     TextSlider/ValueDropdown. New: popups fixed (CanvasGroup now actually clips) and redesigned
-     with an animated gradient hero banner (KeySystem/Subscriptions); Seasonal Decorations
-     (Halloween/Christmas/Summer drifting particles, a badge accessory, and slider-knob skins,
-     auto-detected from the date or picked in Settings > Appearance). ]]
 local JL = {}; JL.Flags = {}; JL._winOpen = false; JL._listening = false; JL.Version = "2.8"
 JL._registry = {}; JL._noSave = {}
 
