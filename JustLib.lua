@@ -1,9 +1,3 @@
---[[ JustLib 2.9 — Grid sections (paging), MultiSection, Text/Screen, Presets, Notify, Tooltip +
-     Icon everywhere, Confirm, Themes, Win:HomeTab, Locked & Hidden, JL:KeySystem, Subscriptions,
-     sidebar text labels, Seasonal Decorations, TextSlider. New: ValueDropdown now supports 2+
-     sliders per item (wrap the item's Values entry in an array of {Name=,Min=,Max=,...} dims,
-     each reported separately in Get()); and Sec:Group — one row combining two compact controls
-     (Toggle/Button/Slider/ColorPicker/Keybind/Segmented, any pairing) under a single shared label. ]]
 local JL = {}; JL.Flags = {}; JL._winOpen = false; JL._listening = false; JL.Version = "2.9"
 JL._registry = {}; JL._noSave = {}
 
