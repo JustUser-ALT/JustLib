@@ -1,10 +1,4 @@
---[[ JustLib 2.9 — Grid sections (paging), MultiSection, Text/Screen, Presets, Notify, Tooltip +
-     Icon everywhere, Confirm, Themes, Win:HomeTab, Locked & Hidden, JL:KeySystem, Subscriptions,
-     sidebar text labels, Seasonal Decorations, TextSlider. New: ValueDropdown now supports 2+
-     sliders per item (wrap the item's Values entry in an array of {Name=,Min=,Max=,...} dims,
-     each reported separately in Get()); and Sec:Group — one row combining two compact controls
-     (Toggle/Button/Slider/ColorPicker/Keybind/Segmented, any pairing) under a single shared label. ]]
-local JL = {}; JL.Flags = {}; JL._winOpen = false; JL._listening = false; JL.Version = "2.9.1"
+local JL = {}; JL.Flags = {}; JL._winOpen = false; JL._listening = false; JL.Version = "3.0"
 JL._registry = {}; JL._noSave = {}
 
 local TS          = game:GetService("TweenService")
@@ -647,6 +641,50 @@ end
 function JL:Confirm(opts)
     opts = opts or {}
     return confirmDialog(opts.Title or "Are you sure?", opts.Desc or "", opts)
+end
+
+-- ============================== restart prompt ==============================
+-- Shown only when a second hub tries to open while one is already running. Deliberately its
+-- own look (vertical layout, pulsing icon badge, stacked full-width buttons) rather than the
+-- generic yes/no confirmDialog, since this is the very first thing a returning user sees.
+local function restartPrompt()
+    local CoreGui = game:GetService("CoreGui")
+    local sg4 = Instance.new("ScreenGui"); sg4.Name = "JLRestart"; sg4.ResetOnSpawn = false; sg4.IgnoreGuiInset = true; sg4.DisplayOrder = 1000
+    local okp = pcall(function() sg4.Parent = CoreGui end); if not okp or not sg4.Parent then sg4.Parent = PG end
+    local bd = Instance.new("Frame"); bd.Size = UDim2.new(1,0,1,0); bd.BackgroundColor3 = Color3.new(0,0,0); bd.BackgroundTransparency = 1; bd.BorderSizePixel = 0; bd.Active = true; bd.Parent = sg4
+    local shell,card,showPopup,hidePopup = mkPopup(bd,260,300)
+
+    local glowHolder = Instance.new("Frame"); glowHolder.Size = UDim2.new(0,86,0,86); glowHolder.AnchorPoint = Vector2.new(0.5,0); glowHolder.Position = UDim2.new(0.5,0,0,34); glowHolder.BackgroundTransparency = 1; glowHolder.Parent = card
+    local ring = Instance.new("Frame"); ring.Size = UDim2.new(1,0,1,0); ring.AnchorPoint = Vector2.new(0.5,0.5); ring.Position = UDim2.new(0.5,0,0.5,0); ring.BackgroundTransparency = 1; ring.Parent = glowHolder
+    corner(43,ring); local ringStroke = stroke(ACCENTS[1],2,ring); ringStroke.Transparency = 0.3
+    local pulseTw = TS:Create(ring, TweenInfo.new(1.6,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true), {Size = UDim2.new(1.25,0,1.25,0)})
+    local pulseFadeTw = TS:Create(ringStroke, TweenInfo.new(1.6,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true), {Transparency = 0.85})
+    pulseTw:Play(); pulseFadeTw:Play()
+
+    local iconCircle = Instance.new("Frame"); iconCircle.Size = UDim2.new(0,64,0,64); iconCircle.AnchorPoint = Vector2.new(0.5,0.5); iconCircle.Position = UDim2.new(0.5,0,0.5,0); iconCircle.BackgroundColor3 = ACCENTS[1]; iconCircle.BorderSizePixel = 0; iconCircle.Parent = glowHolder; corner(32,iconCircle)
+    local ig = Instance.new("UIGradient"); ig.Rotation = 100; ig.Color = ColorSequence.new(ACCENTS[1]:Lerp(Color3.new(1,1,1),0.15), ACCENTS[1]:Lerp(Color3.new(0,0,0),0.4)); ig.Parent = iconCircle
+    local ic = mkIcon(iconCircle, "refresh-cw", 28, 4); ic.AnchorPoint = Vector2.new(0.5,0.5); ic.Position = UDim2.new(0.5,0,0.5,0)
+    if ic:IsA("TextLabel") then ic.TextColor3 = Color3.new(1,1,1) else ic.ImageColor3 = Color3.new(1,1,1) end
+
+    newTxt({Parent=card,Text="Hub Already Running",Font=GB,Size=16,XAlign=Enum.TextXAlignment.Center,Sz=UDim2.new(1,-30,0,20),Pos=UDim2.new(0,15,0,130)})
+    newTxt({Parent=card,Text="Another JustLib hub is already open. Restart it to continue, or cancel to leave the existing one running.",Font=GM,Size=11,Color=C.dim,Wrap=true,XAlign=Enum.TextXAlignment.Center,Sz=UDim2.new(1,-36,0,44),Pos=UDim2.new(0,18,0,154)})
+
+    local restartBtn = Instance.new("TextButton"); restartBtn.Size = UDim2.new(1,-32,0,38); restartBtn.Position = UDim2.new(0,16,1,-86); restartBtn.BackgroundColor3 = ACCENTS[1]; restartBtn.BorderSizePixel = 0; restartBtn.AutoButtonColor = false; restartBtn.Text = ""; restartBtn.Parent = card; corner(9,restartBtn)
+    newTxt({Parent=restartBtn,Text="Restart Hub",Font=GB,Size=13,Color=Color3.new(1,1,1),XAlign=Enum.TextXAlignment.Center})
+    local cancelBtn = Instance.new("TextButton"); cancelBtn.Size = UDim2.new(1,-32,0,32); cancelBtn.Position = UDim2.new(0,16,1,-40); cancelBtn.BackgroundTransparency = 1; cancelBtn.AutoButtonColor = false; cancelBtn.Text = ""; cancelBtn.Parent = card
+    newTxt({Parent=cancelBtn,Text="Cancel",Font=GB,Size=12,Color=C.dim,XAlign=Enum.TextXAlignment.Center})
+
+    local result = nil
+    restartBtn.MouseEnter:Connect(function() tw(restartBtn,{BackgroundColor3 = ACCENTS[1]:Lerp(Color3.new(1,1,1),0.1)},.1) end)
+    restartBtn.MouseLeave:Connect(function() tw(restartBtn,{BackgroundColor3 = ACCENTS[1]},.1) end)
+    restartBtn.MouseButton1Click:Connect(function() if result == nil then result = true end end)
+    cancelBtn.MouseButton1Click:Connect(function() if result == nil then result = false end end)
+    showPopup()
+    while result == nil do task.wait() end
+    pulseTw:Cancel(); pulseFadeTw:Cancel()
+    hidePopup(); task.wait(.16)
+    sg4:Destroy()
+    return result
 end
 
 -- ============================== home-tab helpers ==============================
@@ -1633,6 +1671,19 @@ local function mkCompactControl(parent,x,w,cfg,ac,regFlag,parentSg)
     return {}
 end
 
+-- dropdown option dividers: pass {Divider = true} or {Divider = "Label"} inside Options
+local function isDividerOpt(o) return type(o) == "table" and o.Divider ~= nil end
+local function dividerHeight(o) return (type(o.Divider) == "string") and 22 or 12 end
+local function mkOptDivider(container,order,o,h)
+    local row = Instance.new("Frame"); row.Size = UDim2.new(1,0,0,h); row.BackgroundTransparency = 1; row.LayoutOrder = order; row.Parent = container
+    local line = Instance.new("Frame"); line.Size = UDim2.new(1,0,0,1); line.Position = UDim2.new(0,0,0.5,0); line.BackgroundColor3 = C.divLine; line.BorderSizePixel = 0; line.Parent = row
+    if type(o.Divider) == "string" then
+        local lw = math.min(#o.Divider * 6 + 14, 140)
+        local chip = Instance.new("Frame"); chip.Size = UDim2.new(0,lw,0,14); chip.Position = UDim2.new(0.5,-lw / 2,0.5,-7); chip.BackgroundColor3 = C.pHdr; chip.BorderSizePixel = 0; chip.Parent = row
+        newTxt({Parent=chip,Text=o.Divider,Font=GB,Size=9,Color=C.dim,XAlign=Enum.TextXAlignment.Center})
+    end
+end
+
 -- ============================== section widgets (shared by Section & MultiSection pages) ==============================
 local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
     local function unscale(px)
@@ -1768,6 +1819,9 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
     end
 
     -- ---------- Dropdown (wrapped options, shows selected values, optional Search) ----------
+    -- ---------- Dropdown (wrapped options, shows selected values, optional Search) ----------
+    -- Options entries can be plain values, or {Divider = true} / {Divider = "Label"} to break up the list.
+    -- Static = true keeps the button's own label fixed instead of growing to show what's picked.
     function Sec:Dropdown(o)
         o = o or {}
         local options = o.Options or {}; local multi = o.MultiSelect; local maxSel = o.MaxSelect or 1
@@ -1780,8 +1834,9 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
         end
         local baseName = o.Name or "Dropdown"; local iconW = o.Icon and ICONW or 0; local labW = INNER - 10 - 30 - iconW
         local function labelText()
+            if o.Static then return baseName end
             local picked = {}
-            for _,opt in ipairs(options) do if selected[opt] then picked[#picked + 1] = tostring(opt) end end
+            for _,opt in ipairs(options) do if not isDividerOpt(opt) and selected[opt] then picked[#picked + 1] = tostring(opt) end end
             if #picked == 0 then return baseName end
             return baseName .. ": " .. table.concat(picked, ", ")
         end
@@ -1794,7 +1849,10 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
         local darr = newTxt({Parent=bg,Text="▼",Font=GB,Size=9,Color=C.dim,XAlign=Enum.TextXAlignment.Center,Sz=UDim2.new(0,28,1,0),Pos=UDim2.new(1,-28,0,0)})
 
         local optW = INNER - 8 - 16; local heights = {}; local total = 8
-        for i,optName in ipairs(options) do heights[i] = fitH(tostring(optName), 11, GB, optW, 26, 10); total = total + heights[i] + 2 end
+        for i,optName in ipairs(options) do
+            heights[i] = isDividerOpt(optName) and dividerHeight(optName) or fitH(tostring(optName), 11, GB, optW, 26, 10)
+            total = total + heights[i] + 2
+        end
         if o.Search then total = total + 28 end
         local TOTAL = math.min(total, 180); local dropOpen = false
         local container = Instance.new("ScrollingFrame"); container.Size = UDim2.new(1,0,0,0); container.Position = UDim2.new(0,0,0,bgH + 4); container.BackgroundColor3 = C.pHdr
@@ -1825,6 +1883,9 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
         end
         local function mark(ref,on) ref.mark.Visible = on; ref.label.TextColor3 = on and ac or C.txt end
         for i,optName in ipairs(options) do
+            if isDividerOpt(optName) then
+                mkOptDivider(container, i, optName, heights[i])
+            else
             local optIcon = o.OptionIcons and o.OptionIcons[optName]
             local optIconW = optIcon and 20 or 0
             local opt = Instance.new("TextButton"); opt.Size = UDim2.new(1,0,0,heights[i]); opt.BackgroundColor3 = C.btnBg; opt.BorderSizePixel = 0; opt.AutoButtonColor = false
@@ -1848,7 +1909,7 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
                     if selected[optName] then selected[optName] = nil; mark(optRefs[optName], false)
                     elseif cnt < maxSel then selected[optName] = true; mark(optRefs[optName], true)
                     else return end
-                    local sel = {}; for _,nm in ipairs(options) do if selected[nm] then sel[#sel + 1] = nm end end
+                    local sel = {}; for _,nm in ipairs(options) do if not isDividerOpt(nm) and selected[nm] then sel[#sel + 1] = nm end end
                     cfgSet(o.Flag, sel); refreshLabel(); if o.Callback then pcall(o.Callback, sel) end
                 else
                     for _,ref in pairs(optRefs) do mark(ref, false) end
@@ -1856,6 +1917,7 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
                     cfgSet(o.Flag, optName); refreshLabel(); if o.Callback then pcall(o.Callback, optName) end
                 end
             end)
+            end
         end
         bg.MouseButton1Click:Connect(function()
             dropOpen = not dropOpen; container.Visible = true
@@ -1865,7 +1927,7 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
             if not dropOpen then task.delay(.21, function() if not dropOpen then container.Visible = false end end) end
         end)
         if o.Callback and had then
-            if multi then local sel = {}; for _,nm in ipairs(options) do if selected[nm] then sel[#sel + 1] = nm end end; pcall(o.Callback, sel)
+            if multi then local sel = {}; for _,nm in ipairs(options) do if not isDividerOpt(nm) and selected[nm] then sel[#sel + 1] = nm end end; pcall(o.Callback, sel)
             else for k in pairs(selected) do pcall(o.Callback, k) end end
         end
         local ret = {
@@ -1936,17 +1998,16 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
     end
     Sec.NumberTextSlider = Sec.TextSlider
 
-    -- ---------- ValueDropdown: pick an item, a slider opens to dial in its level, then it closes ----------
-    -- Values = { ItemName = {Min=1, Max=5, All=true, Default=3, ...} }  (or Labels = {"Low","High"});
-    -- items without an entry in Values are plain items. Get() -> { ItemName = level | true }.
-    -- MultiSelect / MaxSelect / Search / OptionLocked etc. work like Dropdown. AutoClose=false keeps the
-    -- slider open until you press OK.
-    -- ---------- ValueDropdown: pick an item, sliders open to dial in its value(s), then close ----------
-    -- Values = { ItemName = {Min=,Max=,All=,Default=} }         -- one slider per item
-    --        | { ItemName = {Labels={...}, Default=} }           -- one text slider per item
-    --        | { ItemName = { {Name="Level",Min=1,Max=5}, {Name="Intensity",Min=1,Max=10} } } -- 2+ sliders
-    -- Items without an entry in Values are plain on/off picks. Get() -> { ItemName = level | {dim=level,...} | true }.
-    -- MultiSelect / MaxSelect / Search / OptionLocked etc. work like Dropdown. AutoClose=false keeps it open until OK.
+    -- ---------- ValueDropdown: pick an item, a small panel opens to configure it, then closes ----------
+    -- Values = { ItemName = {Min=,Max=,All=,Default=} }              -- one slider per item
+    --        | { ItemName = {Labels={...}, Default=} }                 -- one text slider per item
+    --        | { ItemName = { {Name="Level",Type="Slider",Min=1,Max=5},
+    --                          {Name="ESP",Type="Toggle",Default=true},
+    --                          {Name="Color",Type="ColorPicker"},
+    --                          {Name="Teleport",Type="Button",Callback=fn} } } -- 2+ mixed controls
+    -- Type defaults to "Slider" when omitted inside an array entry. Items without a Values entry are
+    -- plain on/off picks; Options entries can be {Divider=true}/{Divider="Label"}. Static=true keeps
+    -- the button's own label fixed. Get() -> { ItemName = level | {dim=level,...} | true }.
     function Sec:ValueDropdown(o)
         o = o or {}
         local options = o.Options or {}
@@ -1958,17 +2019,26 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
             if type(cf) == "table" and type(cf[1]) == "table" then
                 local dims = {}
                 for i,d in ipairs(cf) do
-                    local steps = buildSteps(d)
-                    local defIdx = 1
-                    if d.Default ~= nil then for si,s in ipairs(steps) do if s.value == d.Default then defIdx = si; break end end end
-                    dims[i] = {name = d.Name or ("Value " .. i), key = d.Name or ("v" .. i), steps = steps, defaultIndex = defIdx}
+                    local t = d.Type or "Slider"
+                    if t == "Slider" then
+                        local steps = buildSteps(d)
+                        local defIdx = 1
+                        if d.Default ~= nil then for si,s in ipairs(steps) do if s.value == d.Default then defIdx = si; break end end end
+                        dims[i] = {type = "Slider", name = d.Name, key = d.Name or ("v" .. i), steps = steps, defaultIndex = defIdx}
+                    elseif t == "Toggle" then
+                        dims[i] = {type = "Toggle", name = d.Name or "Toggle", key = d.Name or ("v" .. i), default = d.Default or false, callback = d.Callback}
+                    elseif t == "ColorPicker" then
+                        dims[i] = {type = "ColorPicker", name = d.Name or "Color", key = d.Name or ("v" .. i), default = d.Default or Color3.fromRGB(255,255,255), callback = d.Callback}
+                    elseif t == "Button" then
+                        dims[i] = {type = "Button", name = d.Name or "Button", key = d.Name or ("v" .. i), callback = d.Callback}
+                    end
                 end
                 dimsOf[nm] = dims; isMulti[nm] = true
             else
                 local steps = buildSteps(cf)
                 local defIdx = 1
                 if cf.Default ~= nil then for si,s in ipairs(steps) do if s.value == cf.Default then defIdx = si; break end end end
-                dimsOf[nm] = {{name = nil, key = "_single", steps = steps, defaultIndex = defIdx}}; isMulti[nm] = false
+                dimsOf[nm] = {{type = "Slider", name = nil, key = "_single", steps = steps, defaultIndex = defIdx}}; isMulti[nm] = false
             end
         end
         local selected = {}
@@ -1977,7 +2047,11 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
             local dims = dimsOf[nm]; if not dims then return true end
             if isMulti[nm] then
                 local m = {}
-                for _,d in ipairs(dims) do m[d.key] = d.steps[d.defaultIndex].value end
+                for _,d in ipairs(dims) do
+                    if d.type == "Slider" then m[d.key] = d.steps[d.defaultIndex].value
+                    elseif d.type == "Toggle" then m[d.key] = d.default
+                    elseif d.type == "ColorPicker" then m[d.key] = d.default end
+                end
                 return m
             end
             return dims[1].steps[dims[1].defaultIndex].value
@@ -2007,10 +2081,16 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
             if isMulti[nm] then
                 local parts = {}
                 for _,d in ipairs(dims) do
-                    local dv = type(v) == "table" and v[d.key] or nil; local lbl = tostring(dv)
-                    for _,s in ipairs(d.steps) do if s.value == dv then lbl = s.label; break end end
-                    parts[#parts + 1] = lbl
+                    if d.type == "Slider" then
+                        local dv = type(v) == "table" and v[d.key] or nil; local lbl = tostring(dv)
+                        for _,s in ipairs(d.steps) do if s.value == dv then lbl = s.label; break end end
+                        parts[#parts + 1] = lbl
+                    elseif d.type == "Toggle" then
+                        local dv = type(v) == "table" and v[d.key]
+                        parts[#parts + 1] = dv and "On" or "Off"
+                    end
                 end
+                if #parts == 0 then return nil end
                 return table.concat(parts, "/")
             end
             for _,s in ipairs(dims[1].steps) do if s.value == v then return s.label end end
@@ -2018,9 +2098,10 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
         end
         local baseName = o.Name or "Value Dropdown"; local iconW = o.Icon and ICONW or 0; local labW = INNER - 10 - 30 - iconW
         local function labelText()
+            if o.Static then return baseName end
             local picked = {}
             for _,nm in ipairs(options) do
-                if selected[nm] ~= nil then
+                if not isDividerOpt(nm) and selected[nm] ~= nil then
                     local vl = valueLabel(nm)
                     picked[#picked + 1] = vl and (tostring(nm) .. " (" .. vl .. ")") or tostring(nm)
                 end
@@ -2038,7 +2119,10 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
 
         local optW = INNER - 8 - 16 - 44
         local heights = {}; local total = 8
-        for i,nm in ipairs(options) do heights[i] = fitH(tostring(nm), 11, GB, optW, 26, 10); total = total + heights[i] + 2 end
+        for i,nm in ipairs(options) do
+            heights[i] = isDividerOpt(nm) and dividerHeight(nm) or fitH(tostring(nm), 11, GB, optW, 26, 10)
+            total = total + heights[i] + 2
+        end
         if o.Search then total = total + 28 end
         local TOTAL = math.min(total, 170)
         local PANEL_H = 100
@@ -2108,27 +2192,61 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
             panel.Size = UDim2.new(1,0,0,PANEL_H)
             for i,d in ipairs(dims) do
                 local y = 6 + (i - 1) * rowH
-                local dimVal = isMulti[nm] and selected[nm][d.key] or selected[nm]
-                local curIdx = 1
-                for si,s in ipairs(d.steps) do if s.value == dimVal then curIdx = si; break end end
-                local sliderY = y
-                if d.name then
-                    newTxt({Parent=panel,Text=d.name,Font=GB,Size=11,Sz=UDim2.new(1,-100,0,15),Pos=UDim2.new(0,10,0,y)})
-                    sliderY = y + 19
+                if d.type == "Slider" then
+                    local dimVal = isMulti[nm] and selected[nm][d.key] or selected[nm]
+                    local curIdx = 1
+                    for si,s in ipairs(d.steps) do if s.value == dimVal then curIdx = si; break end end
+                    local sliderY = y
+                    if d.name then
+                        newTxt({Parent=panel,Text=d.name,Font=GB,Size=11,Sz=UDim2.new(1,-100,0,15),Pos=UDim2.new(0,10,0,y)})
+                        sliderY = y + 19
+                    end
+                    local valL = newTxt({Parent=panel,Text=d.steps[curIdx].label,Font=GB,Size=11,Color=ac,XAlign=Enum.TextXAlignment.Right,Sz=UDim2.new(0,90,0,15),Pos=UDim2.new(1,-100,0,y)})
+                    local d2 = d
+                    mkSliderBar(panel, UDim2.new(0,14,0,sliderY + 8), UDim2.new(1,-28,0,6), ac, 1, math.max(#d2.steps,1), 1, curIdx, function(v)
+                        token = token + 1
+                        local nv = d2.steps[v].value
+                        if isMulti[nm] then selected[nm][d2.key] = nv else selected[nm] = nv end
+                        valL.Text = d2.steps[v].label
+                        refreshOptions()
+                    end, function()
+                        if o.AutoClose == false then return end
+                        local t0 = token
+                        task.delay(.7, function() if mode == "value" and token == t0 then finish() end end)
+                    end)
+                elseif d.type == "Toggle" then
+                    local dv = isMulti[nm] and selected[nm][d.key] or false
+                    newTxt({Parent=panel,Text=d.name,Font=GB,Size=11,Sz=UDim2.new(1,-50,0,rowH),Pos=UDim2.new(0,10,0,y)})
+                    local sw = mkSwitch(panel, UDim2.new(1,-44,0,y + (rowH - 18) / 2), dv, ac)
+                    local hit = Instance.new("TextButton"); hit.Size = UDim2.new(1,0,0,rowH); hit.Position = UDim2.new(0,0,0,y); hit.BackgroundTransparency = 1; hit.Text = ""; hit.Parent = panel
+                    local d2 = d
+                    hit.MouseButton1Click:Connect(function()
+                        dv = not dv; sw.Set(dv)
+                        if isMulti[nm] then selected[nm][d2.key] = dv end
+                        if d2.callback then pcall(d2.callback, dv) end
+                        refreshOptions()
+                    end)
+                elseif d.type == "ColorPicker" then
+                    local cur = (isMulti[nm] and selected[nm][d.key]) or d.default
+                    newTxt({Parent=panel,Text=d.name,Font=GB,Size=11,Sz=UDim2.new(1,-50,0,rowH),Pos=UDim2.new(0,10,0,y)})
+                    local sw = Instance.new("TextButton"); sw.Size = UDim2.new(0,30,0,20); sw.Position = UDim2.new(1,-40,0,y + (rowH - 20) / 2); sw.BackgroundColor3 = cur; sw.AutoButtonColor = false; sw.Text = ""; sw.BorderSizePixel = 0; sw.Parent = panel
+                    corner(6,sw); stroke(C.border,1,sw)
+                    local d2 = d
+                    sw.MouseButton1Click:Connect(function()
+                        openColorPicker(parentSg, cur, function(col)
+                            cur = col; sw.BackgroundColor3 = col
+                            if isMulti[nm] then selected[nm][d2.key] = col end
+                            if d2.callback then pcall(d2.callback, col) end
+                        end)
+                    end)
+                elseif d.type == "Button" then
+                    local btn = Instance.new("TextButton"); btn.Size = UDim2.new(1,-20,0,32); btn.Position = UDim2.new(0,10,0,y + (rowH - 32) / 2); btn.BackgroundColor3 = C.btnBg; btn.BorderSizePixel = 0; btn.AutoButtonColor = false
+                    btn.Text = d.name; btn.Font = GB; btn.TextSize = 11; btn.TextColor3 = C.txt; btn.Parent = panel; corner(7,btn); stroke(C.border,1,btn)
+                    btn.MouseEnter:Connect(function() tw(btn,{BackgroundColor3 = C.btnHov},.1) end)
+                    btn.MouseLeave:Connect(function() tw(btn,{BackgroundColor3 = C.btnBg},.1) end)
+                    local d2 = d
+                    btn.MouseButton1Click:Connect(function() if d2.callback then pcall(d2.callback) end end)
                 end
-                local valL = newTxt({Parent=panel,Text=d.steps[curIdx].label,Font=GB,Size=11,Color=ac,XAlign=Enum.TextXAlignment.Right,Sz=UDim2.new(0,90,0,15),Pos=UDim2.new(1,-100,0,y)})
-                local d2 = d
-                mkSliderBar(panel, UDim2.new(0,14,0,sliderY + 8), UDim2.new(1,-28,0,6), ac, 1, math.max(#d2.steps,1), 1, curIdx, function(v)
-                    token = token + 1
-                    local nv = d2.steps[v].value
-                    if isMulti[nm] then selected[nm][d2.key] = nv else selected[nm] = nv end
-                    valL.Text = d2.steps[v].label
-                    refreshOptions()
-                end, function()
-                    if o.AutoClose == false then return end
-                    local t0 = token
-                    task.delay(.7, function() if mode == "value" and token == t0 then finish() end end)
-                end)
             end
             local rem = Instance.new("TextButton"); rem.Size = UDim2.new(0.5,-14,0,26); rem.Position = UDim2.new(0,10,1,-34); rem.BackgroundColor3 = C.btnBg; rem.BorderSizePixel = 0
             rem.Text = "Remove"; rem.Font = GB; rem.TextSize = 11; rem.TextColor3 = C.txt; rem.Parent = panel; corner(6,rem); stroke(C.border,1,rem)
@@ -2155,6 +2273,9 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
             end
         end
         for i,nm in ipairs(options) do
+            if isDividerOpt(nm) then
+                mkOptDivider(container, i, nm, heights[i])
+            else
             local optIcon = o.OptionIcons and o.OptionIcons[nm]
             local optIconW = optIcon and 20 or 0
             local opt = Instance.new("TextButton"); opt.Size = UDim2.new(1,0,0,heights[i]); opt.BackgroundColor3 = C.btnBg; opt.BorderSizePixel = 0; opt.AutoButtonColor = false
@@ -2170,6 +2291,7 @@ local function attachWidgets(content,INNER,ac,uiScale,parentSg,attachTip)
                 attachLockHidden(opt, {Locked = o.OptionLocked and o.OptionLocked[nm], Hidden = o.OptionHidden and o.OptionHidden[nm], LockedMessage = o.LockedMessage, LockedTitle = o.LockedTitle})
             end
             opt.MouseButton1Click:Connect(function() onOption(nm) end)
+            end
         end
         refreshOptions()
         bg.MouseButton1Click:Connect(function()
@@ -2502,7 +2624,7 @@ function JL:Window(opts)
     opts = opts or {}
     local hubStartTick = tick()
     if shared._JLActive and shared._JLActive.alive then
-        local restart = confirmDialog("Hub Already Running", "A JustLib hub is already open. Restart it?")
+        local restart = restartPrompt()
         if not restart then return nil end
         pcall(shared._JLActive.destroy)
     end
