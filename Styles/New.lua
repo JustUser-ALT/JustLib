@@ -1,15 +1,3 @@
---[[
-	JustLib style: "New"
-	Верхняя панель, широкий сайдбар с подписями, карточки-секции с плиткой иконки,
-	градиентные кнопки и переключатели, слайдер в одну строку.
-
-	Файл возвращает таблицу: токены (числа/флаги) + хуки (функции для структурных отличий).
-	Подключение:
-		JL:RegisterStyle("New", loadstring(game:HttpGet(URL .. "/Styles/New.lua"))())
-	или через опции окна:
-		JL:Window({ Style = "New", StyleBase = "https://raw.githubusercontent.com/<user>/<repo>/main/Styles" })
-]]
-
 local function kp(t, c) return ColorSequenceKeypoint.new(t, c) end
 
 return {
